@@ -21,8 +21,63 @@ dns:
     - domain:
         match: "wxsnsdythumb.wxs.qq.com"
         value: reject
+  block_ips:
+    - "27.152.184.0/24"
+    - "121.204.225.0/24"
+    - "121.204.229.0/24"
+    - "124.72.129.0/24"
+    - "171.105.26.0/24"
+    - "171.108.209.0/24"
+    - "171.108.210.0/24"
+    - "171.108.216.0/24"
+    - "220.160.46.0/24"
 
 rules:
+  - ip_cidr:
+      name: "阻断广告素材 CDN 27.152.184.0/24"
+      match: "27.152.184.0/24"
+      policy: REJECT
+      no_resolve: true
+  - ip_cidr:
+      name: "阻断广告素材 CDN 121.204.225.0/24"
+      match: "121.204.225.0/24"
+      policy: REJECT
+      no_resolve: true
+  - ip_cidr:
+      name: "阻断广告素材 CDN 121.204.229.0/24"
+      match: "121.204.229.0/24"
+      policy: REJECT
+      no_resolve: true
+  - ip_cidr:
+      name: "阻断广告素材 CDN 124.72.129.0/24"
+      match: "124.72.129.0/24"
+      policy: REJECT
+      no_resolve: true
+  - ip_cidr:
+      name: "阻断广告素材 CDN 171.105.26.0/24"
+      match: "171.105.26.0/24"
+      policy: REJECT
+      no_resolve: true
+  - ip_cidr:
+      name: "阻断广告素材 CDN 171.108.209.0/24"
+      match: "171.108.209.0/24"
+      policy: REJECT
+      no_resolve: true
+  - ip_cidr:
+      name: "阻断广告素材 CDN 171.108.210.0/24"
+      match: "171.108.210.0/24"
+      policy: REJECT
+      no_resolve: true
+  - ip_cidr:
+      name: "阻断广告素材 CDN 171.108.216.0/24"
+      match: "171.108.216.0/24"
+      policy: REJECT
+      no_resolve: true
+  - ip_cidr:
+      name: "阻断广告素材 CDN 220.160.46.0/24"
+      match: "220.160.46.0/24"
+      policy: REJECT
+      no_resolve: true
   - domain:
       name: "阻断微信图片素材主机"
       match: "wximg.wxs.qq.com"

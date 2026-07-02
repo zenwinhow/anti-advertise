@@ -8,6 +8,16 @@ DOMAIN,wximg.wxs.qq.com,REJECT
 DOMAIN,wxsmw.wxs.qq.com,REJECT
 DOMAIN,wxsnsdy.wxs.qq.com,REJECT
 DOMAIN,wxsnsdythumb.wxs.qq.com,REJECT
+# 微信应用内 DoH 返回的素材 CDN 网段；用于拦截已缓存 IP 的原生直连。
+IP-CIDR,27.152.184.0/24,REJECT,no-resolve
+IP-CIDR,121.204.225.0/24,REJECT,no-resolve
+IP-CIDR,121.204.229.0/24,REJECT,no-resolve
+IP-CIDR,124.72.129.0/24,REJECT,no-resolve
+IP-CIDR,171.105.26.0/24,REJECT,no-resolve
+IP-CIDR,171.108.209.0/24,REJECT,no-resolve
+IP-CIDR,171.108.210.0/24,REJECT,no-resolve
+IP-CIDR,171.108.216.0/24,REJECT,no-resolve
+IP-CIDR,220.160.46.0/24,REJECT,no-resolve
 
 [Host]
 # 阻止系统 DNS 回退再次取得真实 CDN 地址。
