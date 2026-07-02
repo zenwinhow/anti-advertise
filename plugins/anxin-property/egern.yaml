@@ -1,6 +1,26 @@
 name: "安鑫物业小程序去广告"
-description: "激进模式：域名级阻断微信广告素材 CDN，并保留 URL 规则作为第二层防线；可能误伤其他微信小程序媒体。"
+description: "激进模式：Host 黑洞、DoH 查询拦截、域名拒绝和 URL 规则四层阻断微信广告素材；可能误伤其他微信小程序媒体。"
 icon: "shield.lefthalf.filled"
+
+dns:
+  hosts:
+    "wximg.wxs.qq.com": 0.0.0.0
+    "wxsmw.wxs.qq.com": 0.0.0.0
+    "wxsnsdy.wxs.qq.com": 0.0.0.0
+    "wxsnsdythumb.wxs.qq.com": 0.0.0.0
+  forward:
+    - domain:
+        match: "wximg.wxs.qq.com"
+        value: reject
+    - domain:
+        match: "wxsmw.wxs.qq.com"
+        value: reject
+    - domain:
+        match: "wxsnsdy.wxs.qq.com"
+        value: reject
+    - domain:
+        match: "wxsnsdythumb.wxs.qq.com"
+        value: reject
 
 rules:
   - domain:
@@ -20,6 +40,10 @@ rules:
       match: "wxsnsdythumb.wxs.qq.com"
       policy: REJECT
   - url_regex:
+      name: "阻断微信素材主机 DoH 查询"
+      match: '^https://(?:dns\.alidns\.com|doh\.pub)/dns-query\?dns=[A-Za-z0-9_-]*(?:BXd4aW1nA3d4cwJxcQNjb20A|BXd4c213A3d4cwJxcQNjb20A|B3d4c25zZHkDd3hzAnFxA2NvbQA|DHd4c25zZHl0aHVtYgN3eHMCcXEDY29tAA)'
+      policy: REJECT
+  - url_regex:
       name: "拦截微信广告视频及封面"
       match: '^https://(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com/(?:[^/?#]+/)*snssvpdownload/SH/reserved/ads_svp_video__'
       policy: REJECT
@@ -34,3 +58,5 @@ mitm:
     - "wxsnsdy.wxs.qq.com"
     - "wxsnsdythumb.wxs.qq.com"
     - "wximg.wxs.qq.com"
+    - "dns.alidns.com"
+    - "doh.pub"

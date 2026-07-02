@@ -1,5 +1,5 @@
 #!name=安鑫物业小程序去广告
-#!desc=激进模式：域名级阻断微信广告素材 CDN，并保留 URL 复写作为第二层防线；可能误伤其他微信小程序媒体。
+#!desc=激进模式：Host 黑洞、DoH 查询拦截、域名拒绝和 URL 复写四层阻断微信广告素材；可能误伤其他微信小程序媒体。
 #!icon=shield.lefthalf.filled
 
 [Rule]
@@ -9,11 +9,20 @@ DOMAIN,wxsmw.wxs.qq.com,REJECT
 DOMAIN,wxsnsdy.wxs.qq.com,REJECT
 DOMAIN,wxsnsdythumb.wxs.qq.com,REJECT
 
+[Host]
+# 阻止系统 DNS 回退再次取得真实 CDN 地址。
+wximg.wxs.qq.com = 0.0.0.0
+wxsmw.wxs.qq.com = 0.0.0.0
+wxsnsdy.wxs.qq.com = 0.0.0.0
+wxsnsdythumb.wxs.qq.com = 0.0.0.0
+
 [Rewrite]
+# 微信会使用公共 DoH 绕过系统 DNS；仅拦截查询目标素材主机的 DNS 报文。
+^https:\/\/(?:dns\.alidns\.com|doh\.pub)\/dns-query\?dns=[A-Za-z0-9_-]*(?:BXd4aW1nA3d4cwJxcQNjb20A|BXd4c213A3d4cwJxcQNjb20A|B3d4c25zZHkDd3hzAnFxA2NvbQA|DHd4c25zZHl0aHVtYgN3eHMCcXEDY29tAA) reject-200
 # 微信广告视频及封面；返回空的 200 响应，避免下载素材。
 ^https:\/\/(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com\/(?:[^\/?#]+\/)*snssvpdownload\/SH\/reserved\/ads_svp_video__ reject-200
 # 微信广告静态创意；文件名中的业务标记来自新旧抓包交叉确认。
 ^https:\/\/(?:wxsnsdythumb|wximg)\.wxs\.qq\.com\/(?:[^\/?#]+\/)*snscosdownload\/(?:[^\/?#]+\/)*reserved\/[^\/?#]*0000008d00004eec reject-img
 
 [MITM]
-hostname = wxsmw.wxs.qq.com,wxsnsdy.wxs.qq.com,wxsnsdythumb.wxs.qq.com,wximg.wxs.qq.com
+hostname = wxsmw.wxs.qq.com,wxsnsdy.wxs.qq.com,wxsnsdythumb.wxs.qq.com,wximg.wxs.qq.com,dns.alidns.com,doh.pub
