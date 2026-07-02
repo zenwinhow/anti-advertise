@@ -1,17 +1,15 @@
 #!name=安鑫物业小程序去广告
-#!desc=强制原生 TCP 连接进入 HTTP 引擎，并在请求阶段返回透明像素。
+#!desc=强制广告素材主机的原生 TCP 连接进入 HTTP 引擎，仅对抓包确认的广告路径中断请求，尝试触发广告组件失败收起。
 
 [General]
 force-http-engine-hosts = %APPEND% wximg.wxs.qq.com:443,wxsmw.wxs.qq.com:443,wxsnsdy.wxs.qq.com:443,wxsnsdythumb.wxs.qq.com:443
 
-[Rule]
-DOMAIN,wximg.wxs.qq.com,REJECT-TINYGIF
-DOMAIN,wxsmw.wxs.qq.com,REJECT-TINYGIF
-DOMAIN,wxsnsdy.wxs.qq.com,REJECT-TINYGIF
-DOMAIN,wxsnsdythumb.wxs.qq.com,REJECT-TINYGIF
+[URL Rewrite]
+^https:\/\/(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com\/(?:[^\/?#]+\/)*snssvpdownload\/SH\/reserved\/ads_svp_video__ _ reject
+^https:\/\/(?:wxsnsdythumb|wximg)\.wxs\.qq\.com\/(?:[^\/?#]+\/)*snscosdownload\/(?:[^\/?#]+\/)*reserved\/[^\/?#]*0000008d00004eec _ reject
 
 [Script]
-anxin-property-adblock = type=http-request,pattern=^https:\/\/(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com\/.*(?:snssvpdownload|snscosdownload)\/,script-path=https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/anxin-property/scripts/loon-surge-request.js,timeout=5
+anxin-property-adblock-abort = type=http-request,pattern=^https:\/\/(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com\/(?:[^\/?#]+\/)*(?:snssvpdownload\/SH\/reserved\/ads_svp_video__|snscosdownload\/(?:[^\/?#]+\/)*reserved\/[^\/?#]*0000008d00004eec),script-path=https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/anxin-property/scripts/surge-request.js,timeout=5
 
 [MITM]
 hostname = %APPEND% wximg.wxs.qq.com,wxsmw.wxs.qq.com,wxsnsdy.wxs.qq.com,wxsnsdythumb.wxs.qq.com
