@@ -1,0 +1,18 @@
+# Private packet captures and exported traffic data
+captures/*
+!captures/.gitkeep
+
+# Local Codex project instructions
+AGENTS.md
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+
+# Temporary files
+*.log
+*.tmp
+*~

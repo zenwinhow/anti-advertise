@@ -1,0 +1,16 @@
+name: "安鑫物业小程序去广告"
+description: "根据 2026-07-02 抓包精准拦截微信广告视频及封面，不影响安鑫物业业务接口和微信 CDN 的其他资源。"
+icon: "shield.lefthalf.filled"
+
+rules:
+  - url_regex:
+      name: "拦截微信广告素材"
+      match: '^https://(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com/(?:[^/?#]+/)*snssvpdownload/SH/reserved/ads_svp_video__'
+      policy: REJECT
+
+mitm:
+  hostnames:
+    - "wxsmw.wxs.qq.com"
+    - "wxsnsdy.wxs.qq.com"
+    - "wxsnsdythumb.wxs.qq.com"
+    - "wximg.wxs.qq.com"
