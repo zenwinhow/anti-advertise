@@ -5,6 +5,8 @@
 [Rewrite]
 # 微信广告视频及封面；返回空的 200 响应，避免下载素材。
 ^https:\/\/(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com\/(?:[^\/?#]+\/)*snssvpdownload\/SH\/reserved\/ads_svp_video__ reject-200
+# 微信广告静态创意；文件名中的业务标记来自新旧抓包交叉确认。
+^https:\/\/(?:wxsnsdythumb|wximg)\.wxs\.qq\.com\/(?:[^\/?#]+\/)*snscosdownload\/(?:[^\/?#]+\/)*reserved\/[^\/?#]*0000008d00004eec reject-img
 
 [MITM]
 hostname = wxsmw.wxs.qq.com,wxsnsdy.wxs.qq.com,wxsnsdythumb.wxs.qq.com,wximg.wxs.qq.com

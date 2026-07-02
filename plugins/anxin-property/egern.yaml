@@ -4,8 +4,12 @@ icon: "shield.lefthalf.filled"
 
 rules:
   - url_regex:
-      name: "拦截微信广告素材"
+      name: "拦截微信广告视频及封面"
       match: '^https://(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com/(?:[^/?#]+/)*snssvpdownload/SH/reserved/ads_svp_video__'
+      policy: REJECT
+  - url_regex:
+      name: "拦截微信广告静态创意"
+      match: '^https://(?:wxsnsdythumb|wximg)\.wxs\.qq\.com/(?:[^/?#]+/)*snscosdownload/(?:[^/?#]+/)*reserved/[^/?#]*0000008d00004eec'
       policy: REJECT
 
 mitm:

@@ -9,20 +9,28 @@
 
 ## 匹配依据
 
-广告视频和封面由以下微信素材主机提供：
+广告视频、封面和静态创意由以下微信素材主机提供：
 
 - `wxsmw.wxs.qq.com`
 - `wxsnsdy.wxs.qq.com`
 - `wxsnsdythumb.wxs.qq.com`
 - `wximg.wxs.qq.com`
 
-广告素材具有以下稳定路径特征：
+视频及封面具有以下稳定路径特征：
 
 ```text
 /snssvpdownload/SH/reserved/ads_svp_video__
 ```
 
-该特征前的 CDN 目录按可变路径处理，不依赖 `/131/20204/`、`/131/20210/` 等可能变化的目录。规则仍限定在上述四个素材主机内，不会整域拦截 `*.wxs.qq.com`。
+后续抓包发现，部分静态广告创意使用另一类路径，资源文件名中带有稳定业务标记：
+
+```text
+/snscosdownload/<region>/reserved/<resource-id-containing-0000008d00004eec>
+```
+
+新旧抓包中该标记对应的响应均为广告创意，包括视频首帧、商品图和游戏推广图。规则同时限定 `wximg.wxs.qq.com` 或 `wxsnsdythumb.wxs.qq.com`、`snscosdownload`、`reserved` 目录及 `0000008d00004eec` 标记，避免扩大到微信 CDN 的其他资源。
+
+这些特征前的 CDN 目录按可变路径处理，不依赖 `/131/20204/`、`/131/20210/`、`/141/20204/` 等可能变化的目录。规则不会整域拦截 `*.wxs.qq.com`。
 
 安鑫物业业务接口 `wechat.zhtxcom.com` 不在拦截范围内。
 
