@@ -1,6 +1,13 @@
 #!name=安鑫物业小程序去广告
-#!desc=根据 2026-07-02 抓包，精准拦截微信广告素材路径，不影响安鑫物业业务接口和微信 CDN 的其他资源。
+#!desc=激进模式：域名级阻断微信广告素材 CDN，并保留 URL 复写作为第二层防线；可能误伤其他微信小程序媒体。
 #!icon=shield.lefthalf.filled
+
+[Rule]
+# 原生 CFNetwork 会绕过部分 URL 复写并重复回源，因此直接拒绝已确认的素材主机。
+DOMAIN,wximg.wxs.qq.com,REJECT
+DOMAIN,wxsmw.wxs.qq.com,REJECT
+DOMAIN,wxsnsdy.wxs.qq.com,REJECT
+DOMAIN,wxsnsdythumb.wxs.qq.com,REJECT
 
 [Rewrite]
 # 微信广告视频及封面；返回空的 200 响应，避免下载素材。
