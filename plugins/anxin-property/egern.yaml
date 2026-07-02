@@ -107,6 +107,13 @@ rules:
       match: '^https://(?:wxsnsdythumb|wximg)\.wxs\.qq\.com/(?:[^/?#]+/)*snscosdownload/(?:[^/?#]+/)*reserved/[^/?#]*0000008d00004eec'
       policy: REJECT
 
+scriptings:
+  - http_request:
+      name: "安鑫物业广告本地响应"
+      match: '^https://(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com/.*(?:snssvpdownload|snscosdownload)/'
+      script_url: "https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/anxin-property/scripts/egern-request.js"
+      timeout: 5
+
 mitm:
   hostnames:
     - "wxsmw.wxs.qq.com"

@@ -34,5 +34,9 @@ wxsnsdythumb.wxs.qq.com = 0.0.0.0
 # 微信广告静态创意；文件名中的业务标记来自新旧抓包交叉确认。
 ^https:\/\/(?:wxsnsdythumb|wximg)\.wxs\.qq\.com\/(?:[^\/?#]+\/)*snscosdownload\/(?:[^\/?#]+\/)*reserved\/[^\/?#]*0000008d00004eec reject-img
 
+[Script]
+# 请求阶段直接返回可解码的透明 GIF，避免空响应触发微信再次回源。
+http-request ^https:\/\/(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com\/.*(?:snssvpdownload|snscosdownload)\/ script-path=https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/anxin-property/scripts/loon-surge-request.js,tag=安鑫物业广告本地响应,enable=true
+
 [MITM]
 hostname = wxsmw.wxs.qq.com,wxsnsdy.wxs.qq.com,wxsnsdythumb.wxs.qq.com,wximg.wxs.qq.com,dns.alidns.com,doh.pub
