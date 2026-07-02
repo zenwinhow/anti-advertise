@@ -1,0 +1,11 @@
+# Copy these rules to the top of the main Loon [Rule] section.
+# They must appear before GEOIP,CN,DIRECT, other DIRECT rules, and FINAL.
+IP-CIDR,27.152.184.0/24,REJECT-DROP,no-resolve
+IP-CIDR,121.204.225.0/24,REJECT-DROP,no-resolve
+IP-CIDR,121.204.229.0/24,REJECT-DROP,no-resolve
+IP-CIDR,124.72.129.0/24,REJECT-DROP,no-resolve
+IP-CIDR,171.105.26.0/24,REJECT-DROP,no-resolve
+IP-CIDR,171.108.209.0/24,REJECT-DROP,no-resolve
+IP-CIDR,171.108.210.0/24,REJECT-DROP,no-resolve
+IP-CIDR,171.108.216.0/24,REJECT-DROP,no-resolve
+IP-CIDR,220.160.46.0/24,REJECT-DROP,no-resolve

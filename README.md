@@ -16,6 +16,7 @@
 │   └── <plugin-slug>/
 │       ├── README.md
 │       ├── loon.plugin
+│       ├── loon-priority-rules.list
 │       ├── egern.yaml
 │       ├── surge.sgmodule
 │       └── scripts/

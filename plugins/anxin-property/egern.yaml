@@ -1,5 +1,5 @@
 name: "安鑫物业小程序去广告"
-description: "激进模式：Host 黑洞、DoH 查询拦截、域名拒绝和 URL 规则四层阻断微信广告素材；可能误伤其他微信小程序媒体。"
+description: "Egern 激进模式：原生透明图复写、请求脚本、域名/DoH 拒绝和扩大后的 CDN 网段共同阻断微信广告素材；会误伤部分微信媒体及中国 CDN。"
 icon: "shield.lefthalf.filled"
 
 dns:
@@ -22,60 +22,42 @@ dns:
         match: "wxsnsdythumb.wxs.qq.com"
         value: reject
   block_ips:
-    - "27.152.184.0/24"
-    - "121.204.225.0/24"
-    - "121.204.229.0/24"
-    - "124.72.129.0/24"
-    - "171.105.26.0/24"
-    - "171.108.209.0/24"
-    - "171.108.210.0/24"
-    - "171.108.216.0/24"
-    - "220.160.46.0/24"
+    - "27.152.0.0/16"
+    - "121.204.0.0/16"
+    - "124.72.0.0/16"
+    - "171.105.0.0/16"
+    - "171.108.0.0/16"
+    - "220.160.0.0/16"
 
 rules:
   - ip_cidr:
-      name: "阻断广告素材 CDN 27.152.184.0/24"
-      match: "27.152.184.0/24"
+      name: "阻断广告素材 CDN 27.152.0.0/16"
+      match: "27.152.0.0/16"
       policy: REJECT
       no_resolve: true
   - ip_cidr:
-      name: "阻断广告素材 CDN 121.204.225.0/24"
-      match: "121.204.225.0/24"
+      name: "阻断广告素材 CDN 121.204.0.0/16"
+      match: "121.204.0.0/16"
       policy: REJECT
       no_resolve: true
   - ip_cidr:
-      name: "阻断广告素材 CDN 121.204.229.0/24"
-      match: "121.204.229.0/24"
+      name: "阻断广告素材 CDN 124.72.0.0/16"
+      match: "124.72.0.0/16"
       policy: REJECT
       no_resolve: true
   - ip_cidr:
-      name: "阻断广告素材 CDN 124.72.129.0/24"
-      match: "124.72.129.0/24"
+      name: "阻断广告素材 CDN 171.105.0.0/16"
+      match: "171.105.0.0/16"
       policy: REJECT
       no_resolve: true
   - ip_cidr:
-      name: "阻断广告素材 CDN 171.105.26.0/24"
-      match: "171.105.26.0/24"
+      name: "阻断广告素材 CDN 171.108.0.0/16"
+      match: "171.108.0.0/16"
       policy: REJECT
       no_resolve: true
   - ip_cidr:
-      name: "阻断广告素材 CDN 171.108.209.0/24"
-      match: "171.108.209.0/24"
-      policy: REJECT
-      no_resolve: true
-  - ip_cidr:
-      name: "阻断广告素材 CDN 171.108.210.0/24"
-      match: "171.108.210.0/24"
-      policy: REJECT
-      no_resolve: true
-  - ip_cidr:
-      name: "阻断广告素材 CDN 171.108.216.0/24"
-      match: "171.108.216.0/24"
-      policy: REJECT
-      no_resolve: true
-  - ip_cidr:
-      name: "阻断广告素材 CDN 220.160.46.0/24"
-      match: "220.160.46.0/24"
+      name: "阻断广告素材 CDN 220.160.0.0/16"
+      match: "220.160.0.0/16"
       policy: REJECT
       no_resolve: true
   - domain:
@@ -94,6 +76,14 @@ rules:
       name: "阻断微信缩略图素材主机"
       match: "wxsnsdythumb.wxs.qq.com"
       policy: REJECT
+  - domain:
+      name: "阻断阿里公共 DoH"
+      match: "dns.alidns.com"
+      policy: REJECT
+  - domain:
+      name: "阻断腾讯公共 DoH"
+      match: "doh.pub"
+      policy: REJECT
   - url_regex:
       name: "阻断微信素材主机 DoH 查询"
       match: '^https://(?:dns\.alidns\.com|doh\.pub)/dns-query\?dns=[A-Za-z0-9_-]*(?:BXd4aW1nA3d4cwJxcQNjb20A|BXd4c213A3d4cwJxcQNjb20A|B3d4c25zZHkDd3hzAnFxA2NvbQA|DHd4c25zZHl0aHVtYgN3eHMCcXEDY29tAA)'
@@ -107,10 +97,16 @@ rules:
       match: '^https://(?:wxsnsdythumb|wximg)\.wxs\.qq\.com/(?:[^/?#]+/)*snscosdownload/(?:[^/?#]+/)*reserved/[^/?#]*0000008d00004eec'
       policy: REJECT
 
+url_rewrites:
+  - match: '^https://(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com(?:[/:?#]|$)'
+    location: "http://reject-img/"
+  - match: '^https://(?:dns\.alidns\.com|doh\.pub)/dns-query(?:[/?#]|$)'
+    location: "http://reject-200/"
+
 scriptings:
   - http_request:
       name: "安鑫物业广告本地响应"
-      match: '^https://(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com/.*(?:snssvpdownload|snscosdownload)/'
+      match: '^https://(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com(?:[/:?#]|$)'
       script_url: "https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/anxin-property/scripts/egern-request.js"
       timeout: 5
 
