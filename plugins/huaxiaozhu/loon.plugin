@@ -1,5 +1,5 @@
 #!name=花小猪去广告
-#!desc=按抓包确认的专用域名拦截花小猪广告请求、追踪与广告日志；无需 MITM。
+#!desc=拦截花小猪广告域名，并预防性清空活动批量接口；活动接口规则需要 MITM。
 #!icon=shield.lefthalf.filled
 
 [Rule]
@@ -9,3 +9,10 @@ DOMAIN,guanggao-prod.cn-shanghai.log.aliyuncs.com,REJECT
 # 腾讯广点通广告 SDK 端点。
 DOMAIN,sdk.e.qq.com,REJECT
 DOMAIN,mi.gdt.qq.com,REJECT
+
+[Rewrite]
+# 用户补充的预防性规则；返回空 JSON 对象。
+^https:\/\/res\.hongyibo\.com\.cn\/os\/gs\/resapi\/activity\/mget\?_t reject-dict
+
+[MITM]
+hostname = res.hongyibo.com.cn

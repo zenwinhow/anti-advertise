@@ -1,12 +1,13 @@
 # 花小猪去广告
 
-花小猪 App 广告域名拦截插件，支持 Loon、Egern 和 Surge。
+花小猪 App 广告域名及活动接口处理插件，支持 Loon、Egern 和 Surge。
 
 ## 文件
 
 - `loon.plugin`：Loon 插件
 - `egern.yaml`：Egern 模块
 - `surge.sgmodule`：Surge 模块
+- `scripts/surge-activity-mget.js`：为 Surge 返回空 JSON 对象的请求脚本
 
 ## 匹配依据
 
@@ -21,11 +22,19 @@
 | `sdk.e.qq.com` | 8 次 TLS ClientHello，失败后反复重试 | 腾讯广点通广告 SDK |
 | `mi.gdt.qq.com` | 8 次 TLS ClientHello，失败后反复重试 | 腾讯广点通广告接口 |
 
-三个客户端都只使用完整域名规则，不使用域名后缀、通配符或 IP 网段。抓包中还出现 `static.hongyibo.com.cn`、`res-new.hongyibo.com.cn`、`s3-hnapuhdd-cdn.didistatic.com` 等资源主机，但它们同时可能承载地图、活动页或普通图片，规则不会整域阻断这些共享资源。
+域名拦截部分只使用完整域名规则，不使用域名后缀、通配符或 IP 网段。抓包中还出现 `static.hongyibo.com.cn`、`res-new.hongyibo.com.cn`、`s3-hnapuhdd-cdn.didistatic.com` 等资源主机，但它们同时可能承载地图、活动页或普通图片，规则不会整域阻断这些共享资源。
+
+此外，插件加入用户补充的预防性活动接口规则：
+
+```text
+^https://res\.hongyibo\.com\.cn/os/gs/resapi/activity/mget\?_t
+```
+
+命中后返回 HTTP 200 和空 JSON 对象 `{}`。原始抓包中存在 `res.hongyibo.com.cn` 的 DNS 查询，但 TLS 正文未解密，无法从该抓包确认这条路径是否实际承载广告，因此它作为预防性规则保留。Loon 和 Egern 使用原生 `reject-dict`；Surge 使用本地请求脚本提供相同响应。
 
 ## MITM 要求
 
-不需要安装或信任 MITM 证书。规则在连接分流阶段按目标域名拒绝请求，不读取 HTTPS 正文。
+四条域名规则不需要 MITM。活动接口是 HTTPS URL 级匹配，需要在所用客户端中安装并信任 CA 证书、开启 MITM，并确保 `res.hongyibo.com.cn` 已进入 MITM 主机列表；三个模块已经包含该主机声明。
 
 ## 安装
 
@@ -46,7 +55,7 @@
 ## 已知限制
 
 - 抓包只有约 9.48 秒，无法覆盖服务端后续新增或按地区下发的其他广告域名。
-- 由于 HTTPS 正文未解密，当前实现只能做精确域名拦截，不能只复写某个广告 API 的响应字段。
+- 活动接口规则来自用户补充，未由现有抓包或实机行为验证；若该接口同时返回正常活动内容，可能导致相关活动入口为空。
 - `sdk.e.qq.com` 和 `mi.gdt.qq.com` 是多个 App 共用的广点通端点；启用插件期间，其他 App 的广点通广告也会被阻断。
 - 广告请求失败后，App 可能保留空白广告位；网络层规则无法安全移除原生界面容器。
 - 激励广告、广告奖励或依赖广告完成状态的活动可能无法使用。

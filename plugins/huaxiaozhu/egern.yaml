@@ -1,5 +1,5 @@
 name: "花小猪去广告"
-description: "按抓包确认的专用域名拦截花小猪广告请求、追踪与广告日志；无需 MITM。"
+description: "拦截花小猪广告域名，并预防性清空活动批量接口；活动接口规则需要 MITM。"
 icon: "shield.lefthalf.filled"
 
 rules:
@@ -19,3 +19,11 @@ rules:
       name: "拦截广点通广告接口"
       match: "mi.gdt.qq.com"
       policy: REJECT
+
+url_rewrites:
+  - match: '^https://res\.hongyibo\.com\.cn/os/gs/resapi/activity/mget\?_t'
+    location: "http://reject-dict/"
+
+mitm:
+  hostnames:
+    - "res.hongyibo.com.cn"
