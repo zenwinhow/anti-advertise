@@ -1,0 +1,10 @@
+#!name=花小猪去广告
+#!desc=按抓包确认的专用域名拦截花小猪广告请求、追踪与广告日志；无需 MITM。
+
+[Rule]
+# 花小猪自有广告追踪与广告日志端点。
+DOMAIN,adtrack.hongyibo.com.cn,REJECT
+DOMAIN,guanggao-prod.cn-shanghai.log.aliyuncs.com,REJECT
+# 腾讯广点通广告 SDK 端点。
+DOMAIN,sdk.e.qq.com,REJECT
+DOMAIN,mi.gdt.qq.com,REJECT

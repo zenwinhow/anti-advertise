@@ -7,6 +7,7 @@
 | 插件 | Loon | Egern | Surge | 说明 |
 | --- | --- | --- | --- | --- |
 | 安鑫物业小程序 | [loon.plugin](plugins/anxin-property/loon.plugin) | [egern.yaml](plugins/anxin-property/egern.yaml) | [surge.sgmodule](plugins/anxin-property/surge.sgmodule) | [查看详情](plugins/anxin-property/README.md) |
+| 花小猪 | [loon.plugin](plugins/huaxiaozhu/loon.plugin) | [egern.yaml](plugins/huaxiaozhu/egern.yaml) | [surge.sgmodule](plugins/huaxiaozhu/surge.sgmodule) | [查看详情](plugins/huaxiaozhu/README.md) |
 
 ## 目录结构
 

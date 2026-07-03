@@ -1,0 +1,21 @@
+name: "花小猪去广告"
+description: "按抓包确认的专用域名拦截花小猪广告请求、追踪与广告日志；无需 MITM。"
+icon: "shield.lefthalf.filled"
+
+rules:
+  - domain:
+      name: "拦截花小猪广告追踪"
+      match: "adtrack.hongyibo.com.cn"
+      policy: REJECT
+  - domain:
+      name: "拦截花小猪广告日志"
+      match: "guanggao-prod.cn-shanghai.log.aliyuncs.com"
+      policy: REJECT
+  - domain:
+      name: "拦截广点通广告 SDK"
+      match: "sdk.e.qq.com"
+      policy: REJECT
+  - domain:
+      name: "拦截广点通广告接口"
+      match: "mi.gdt.qq.com"
+      policy: REJECT
