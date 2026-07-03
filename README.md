@@ -57,9 +57,10 @@
 
 1. 创建 `plugins/<plugin-slug>/`。
 2. 根据支持的客户端添加 `loon.plugin`、`egern.yaml`、`surge.sgmodule`，不要求三者必须同时存在。
-3. 添加插件自己的 `README.md`，说明匹配依据、MITM 主机和已知限制。
-4. 将抓包放入 `captures/<plugin-slug>/`，确认其中不包含准备提交的文件。
-5. 在本 README 的插件列表中增加入口。
+3. Surge 模块必须声明 `#!category=...`；去广告模块默认使用 `#!category=广告拦截`。
+4. 添加插件自己的 `README.md`，说明匹配依据、MITM 主机和已知限制。
+5. 将抓包放入 `captures/<plugin-slug>/`，确认其中不包含准备提交的文件。
+6. 在本 README 的插件列表中增加入口。
 
 编写规则时应优先匹配稳定且明确的广告接口、路径或响应字段，避免整域拦截公共 CDN。不要在配置、说明或提交记录中包含 Cookie、Token、用户标识和其他敏感信息。
 

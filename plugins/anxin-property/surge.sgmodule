@@ -1,5 +1,6 @@
 #!name=安鑫物业小程序去广告
 #!desc=强制广告素材主机的原生 TCP 连接进入 HTTP 引擎，仅对抓包确认的广告路径中断请求，尝试触发广告组件失败收起。
+#!category=广告拦截
 
 [General]
 force-http-engine-hosts = %APPEND% wximg.wxs.qq.com:443,wxsmw.wxs.qq.com:443,wxsnsdy.wxs.qq.com:443,wxsnsdythumb.wxs.qq.com:443
