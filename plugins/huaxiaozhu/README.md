@@ -20,6 +20,7 @@
 - `captures/huaxiaozhu/2026-07-08-083718.pcap`：持续约 31.13 秒，共 2934 个数据包。
 - `captures/huaxiaozhu/2026-07-08-094452.pcap`：`hostname=*` 条件下抓取，持续约 19.89 秒，共 3774 个数据包。
 - `captures/huaxiaozhu/119_1783474769989.har`：Loon HTTPS 明文捕获，共 173 条请求。
+- `captures/huaxiaozhu/121_1783477298603.har`：Loon HTTPS 明文捕获，共 322 条请求，覆盖更多广告素材下载。
 
 这些 pcap 在 tshark 协议层级中仍只显示 TLS，没有可直接识别的 HTTP/HTTP2 明文层，因此只能可靠读取 DNS 和 TLS SNI，不能安全确认 HTTPS 请求路径或响应字段。若要看解密后的路径、请求头和 JSON，需在 Surge 的 HTTP Capture / Dashboard 中查看或导出明文记录；普通网卡侧 pcap 即使开启 `hostname=*` 也可能仍是加密 TLS。
 
@@ -43,8 +44,9 @@ Loon HAR 明文捕获确认了以下广告相关响应：
 | --- | --- | --- |
 | `res-new.hongyibo.com.cn/resapi/activity/mget` | 返回 `p_startpage` 开屏和 `p_home_popup` 首页弹窗 | 路径级返回空 JSON 对象 |
 | `res-new.hongyibo.com.cn/resapi/activity/render` | 返回 `p_advertisement_home_brand_minds` 品牌广告位 | 路径级返回空 JSON 对象 |
-| `casper-agent.hongyibo.com.cn/agent/v3/feeds` | 首页 feed 中存在 `kf_home_super_banner_new_adx`、`p_advertisement_home_brand_minds`、外部商业广告标记 | 响应脚本仅删除明确广告卡片 |
+| `casper-agent.hongyibo.com.cn/agent/v3/feeds` | 首页 feed 中存在广告卡片、外部商业广告标记，以及包含 `/static/ad_oss/` 的素材卡片 | 响应脚本删除广告卡片并保留其余卡片 |
 | `casper-agent.hongyibo.com.cn/agent/v3/preview` | 预览配置中包含首页 banner 模板 | 响应脚本复用同一过滤逻辑 |
+| `*.didistatic.com/static/ad_oss/` | 第二份 HAR 中集中出现广告图片和 GIF 素材；`img-ys011` 这类桶名前缀可能变化 | 路径级素材兜底拦截 |
 
 此外，插件加入用户补充的预防性活动接口规则：
 
@@ -55,6 +57,8 @@ Loon HAR 明文捕获确认了以下广告相关响应：
 命中后返回 HTTP 200 和空 JSON 对象 `{}`。原始抓包中存在 `res.hongyibo.com.cn` 的 DNS 查询，但 TLS 正文未解密，无法从该抓包确认这条路径是否实际承载广告，因此它作为预防性规则保留。Loon 和 Egern 使用原生 `reject-dict`；Surge 使用本地请求脚本提供相同响应。
 
 `res-new.hongyibo.com.cn/resapi/activity/mget` 和 `/render` 来自 Loon HAR 明文捕获。Loon 和 Egern 使用原生 `reject-dict`；Surge 使用请求脚本返回 `{"errno":0,"errmsg":"success","data":{}}`，避免活动数据继续下发。
+
+`121_1783477298603.har` 显示部分首页 feed 卡片不再携带明显的 `external_commercial_ad` 标记，但内部图片仍指向 `/static/ad_oss/`。`img-ys011` 这类 didistatic 桶名前缀可能随地区、机房或调度变化，因此素材兜底规则使用 `*.didistatic.com/static/ad_oss/`，靠路径限定广告素材目录，而不是写死单个桶名。首页 feed 脚本也会将包含该广告素材路径的卡片视为广告卡片并删除。`gift-static.hongyibo.com.cn`、`ut-static.udache.com`、`s3-pypu.hongyibo.com.cn`、`s3-hnapuhdd-cdn.didistatic.com` 等仍承载普通 UI、字体、组件包或业务资源，不做整域/整目录阻断。
 
 ## MITM 要求
 
@@ -85,7 +89,8 @@ Loon HAR 明文捕获确认了以下广告相关响应：
 - 第三次抓包虽然使用 `hostname=*`，但导出的 pcap 仍未包含 tshark 可识别的 HTTP/HTTP2 明文层；需要以 Surge HTTP Capture / Dashboard 的明文记录继续分析。
 - 活动接口规则来自用户补充，未由现有抓包或实机行为验证；若该接口同时返回正常活动内容，可能导致相关活动入口为空。
 - `res-new` 活动接口规则来自 Loon 明文 HAR，可移除开屏、首页弹窗和品牌广告位；若该接口也承载正常活动运营位，相关活动入口会被隐藏。
-- 首页 feed 脚本只删除明确广告卡片；若花小猪改名或新增广告字段，可能需要再次根据 HAR 调整。
+- 首页 feed 脚本会删除明确广告卡片，以及包含 `/static/ad_oss/` 广告素材路径的卡片；若花小猪改名或新增广告字段，可能需要再次根据 HAR 调整。
+- 素材兜底规则只拦截 `*.didistatic.com/static/ad_oss/`，不拦截 `gift-static`、`ut-static`、`s3-pypu` 等共享资源主机，避免破坏普通首页组件或业务页面。
 - `sdk.e.qq.com` 和 `mi.gdt.qq.com` 是多个 App 共用的广点通端点；启用插件期间，其他 App 的广点通广告也会被阻断。
 - 广告请求失败后，App 可能保留空白广告位；网络层规则无法安全移除原生界面容器。
 - 激励广告、广告奖励或依赖广告完成状态的活动可能无法使用。

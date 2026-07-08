@@ -4,7 +4,7 @@
 
 [General]
 # 让花小猪相关主机进入 Surge HTTP 引擎，便于 HTTPS Capture、rewrite 与脚本命中。
-force-http-engine-hosts = %APPEND% adtrack.hongyibo.com.cn, api.hongyibo.com.cn, as.hongyibo.com.cn, casper-agent.hongyibo.com.cn, catchdata.hongyibo.com.cn, common.hongyibo.com.cn, conf.hongyibo.com.cn, epassport.hongyibo.com.cn, gift-static.hongyibo.com.cn, gwp.hongyibo.com.cn, httpdns.hongyibo.com.cn, lion.hongyibo.com.cn, map-api.hongyibo.com.cn, map-poi.hongyibo.com.cn, map-trafficrenderapi.hongyibo.com.cn, msggate.hongyibo.com.cn, omgup.hongyibo.com.cn, page.hongyibo.com.cn, res.hongyibo.com.cn, res-new.hongyibo.com.cn, s3-pypu.hongyibo.com.cn, s3-static.hongyibo.com.cn, sec-guard.hongyibo.com.cn, static.hongyibo.com.cn, guanggao-prod.cn-shanghai.log.aliyuncs.com, open-set-api.shenshiads.com, security.honghusaas.com, api.didi.cn, apm.xiaojukeji.com, omgup1.xiaojukeji.com, dpubstatic.udache.com, img-ys011.didistatic.com, s3-hnapuhdd-cdn.didistatic.com, sdk.e.qq.com, mi.gdt.qq.com
+force-http-engine-hosts = %APPEND% adtrack.hongyibo.com.cn, api.hongyibo.com.cn, as.hongyibo.com.cn, casper-agent.hongyibo.com.cn, catchdata.hongyibo.com.cn, common.hongyibo.com.cn, conf.hongyibo.com.cn, epassport.hongyibo.com.cn, gift-static.hongyibo.com.cn, gwp.hongyibo.com.cn, httpdns.hongyibo.com.cn, lion.hongyibo.com.cn, map-api.hongyibo.com.cn, map-poi.hongyibo.com.cn, map-trafficrenderapi.hongyibo.com.cn, msggate.hongyibo.com.cn, omgup.hongyibo.com.cn, page.hongyibo.com.cn, res.hongyibo.com.cn, res-new.hongyibo.com.cn, s3-pypu.hongyibo.com.cn, s3-static.hongyibo.com.cn, sec-guard.hongyibo.com.cn, static.hongyibo.com.cn, guanggao-prod.cn-shanghai.log.aliyuncs.com, open-set-api.shenshiads.com, security.honghusaas.com, api.didi.cn, apm.xiaojukeji.com, omgup1.xiaojukeji.com, dpubstatic.udache.com, *.didistatic.com, sdk.e.qq.com, mi.gdt.qq.com
 
 [Rule]
 # 花小猪自有广告追踪与广告日志端点。
@@ -16,6 +16,10 @@ DOMAIN,open-set-api.shenshiads.com,REJECT
 DOMAIN,sdk.e.qq.com,REJECT
 DOMAIN,mi.gdt.qq.com,REJECT
 
+[URL Rewrite]
+# 广告节点中下发的图片/GIF 素材目录。
+^https:\/\/[^\/]+\.didistatic\.com\/static\/ad_oss\/ _ reject
+
 [Script]
 # Surge URL Rewrite 不提供 reject-dict，使用请求脚本返回等价的空 JSON 对象。
 huaxiaozhu-activity-mget = type=http-request,pattern=^https:\/\/res\.hongyibo\.com\.cn\/os\/gs\/resapi\/activity\/mget\?_t,script-path=https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/huaxiaozhu/scripts/surge-activity-mget.js,timeout=5
@@ -25,4 +29,4 @@ huaxiaozhu-res-new-activity = type=http-request,pattern=^https:\/\/res-new\.hong
 huaxiaozhu-feed-filter = type=http-response,pattern=^https:\/\/casper-agent\.hongyibo\.com\.cn\/agent\/v3\/(?:feeds|preview)(?:[?#]|$),requires-body=true,max-size=524288,script-path=https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/huaxiaozhu/scripts/loon-surge-feed-filter.js,timeout=5
 
 [MITM]
-hostname = %APPEND% adtrack.hongyibo.com.cn, api.hongyibo.com.cn, as.hongyibo.com.cn, casper-agent.hongyibo.com.cn, catchdata.hongyibo.com.cn, common.hongyibo.com.cn, conf.hongyibo.com.cn, epassport.hongyibo.com.cn, gift-static.hongyibo.com.cn, gwp.hongyibo.com.cn, httpdns.hongyibo.com.cn, lion.hongyibo.com.cn, map-api.hongyibo.com.cn, map-poi.hongyibo.com.cn, map-trafficrenderapi.hongyibo.com.cn, msggate.hongyibo.com.cn, omgup.hongyibo.com.cn, page.hongyibo.com.cn, res.hongyibo.com.cn, res-new.hongyibo.com.cn, s3-pypu.hongyibo.com.cn, s3-static.hongyibo.com.cn, sec-guard.hongyibo.com.cn, static.hongyibo.com.cn, guanggao-prod.cn-shanghai.log.aliyuncs.com, open-set-api.shenshiads.com, security.honghusaas.com, api.didi.cn, apm.xiaojukeji.com, omgup1.xiaojukeji.com, dpubstatic.udache.com, img-ys011.didistatic.com, s3-hnapuhdd-cdn.didistatic.com, sdk.e.qq.com, mi.gdt.qq.com
+hostname = %APPEND% adtrack.hongyibo.com.cn, api.hongyibo.com.cn, as.hongyibo.com.cn, casper-agent.hongyibo.com.cn, catchdata.hongyibo.com.cn, common.hongyibo.com.cn, conf.hongyibo.com.cn, epassport.hongyibo.com.cn, gift-static.hongyibo.com.cn, gwp.hongyibo.com.cn, httpdns.hongyibo.com.cn, lion.hongyibo.com.cn, map-api.hongyibo.com.cn, map-poi.hongyibo.com.cn, map-trafficrenderapi.hongyibo.com.cn, msggate.hongyibo.com.cn, omgup.hongyibo.com.cn, page.hongyibo.com.cn, res.hongyibo.com.cn, res-new.hongyibo.com.cn, s3-pypu.hongyibo.com.cn, s3-static.hongyibo.com.cn, sec-guard.hongyibo.com.cn, static.hongyibo.com.cn, guanggao-prod.cn-shanghai.log.aliyuncs.com, open-set-api.shenshiads.com, security.honghusaas.com, api.didi.cn, apm.xiaojukeji.com, omgup1.xiaojukeji.com, dpubstatic.udache.com, *.didistatic.com, sdk.e.qq.com, mi.gdt.qq.com

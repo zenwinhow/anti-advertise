@@ -22,15 +22,30 @@ function hasCommercialMarker(value) {
   return false;
 }
 
-function containsCommercialMarker(value) {
-  if (!value || typeof value !== "object") return false;
-  if (hasCommercialMarker(value)) return true;
-
-  if (Array.isArray(value)) {
-    return value.some(containsCommercialMarker);
+function hasAdAssetUrl(value) {
+  if (typeof value === "string") {
+    return value.includes("/static/ad_oss/");
   }
 
-  return Object.keys(value).some((key) => containsCommercialMarker(value[key]));
+  if (!value || typeof value !== "object") return false;
+
+  if (Array.isArray(value)) {
+    return value.some(hasAdAssetUrl);
+  }
+
+  return Object.keys(value).some((key) => hasAdAssetUrl(value[key]));
+}
+
+function containsAdSignal(value) {
+  if (!value || typeof value !== "object") return false;
+  if (hasCommercialMarker(value)) return true;
+  if (hasAdAssetUrl(value)) return true;
+
+  if (Array.isArray(value)) {
+    return value.some(containsAdSignal);
+  }
+
+  return Object.keys(value).some((key) => containsAdSignal(value[key]));
 }
 
 function shouldDropCard(card) {
@@ -49,7 +64,7 @@ function shouldDropCard(card) {
     return true;
   }
 
-  return containsCommercialMarker(card);
+  return containsAdSignal(card);
 }
 
 function cleanNode(value) {
@@ -57,7 +72,7 @@ function cleanNode(value) {
 
   if (Array.isArray(value)) {
     return value
-      .filter((item) => !hasCommercialMarker(item))
+      .filter((item) => !hasCommercialMarker(item) && !hasAdAssetUrl(item))
       .map(cleanNode);
   }
 

@@ -17,10 +17,12 @@ DOMAIN,mi.gdt.qq.com,REJECT
 ^https:\/\/res\.hongyibo\.com\.cn\/os\/gs\/resapi\/activity\/mget\?_t reject-dict
 # Loon HAR 确认的新活动接口：清空开屏、首页弹窗和品牌广告位。
 ^https:\/\/res-new\.hongyibo\.com\.cn\/resapi\/activity\/(?:mget|render)(?:[?#]|$) reject-dict
+# 广告节点中下发的图片/GIF 素材目录。
+^https:\/\/[^\/]+\.didistatic\.com\/static\/ad_oss\/ reject-img
 
 [Script]
 # 过滤首页 feed 中明确的广告卡片，不阻断整个 feed 接口。
 http-response ^https:\/\/casper-agent\.hongyibo\.com\.cn\/agent\/v3\/(?:feeds|preview)(?:[?#]|$) script-path=https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/huaxiaozhu/scripts/loon-surge-feed-filter.js,requires-body=true,tag=花小猪首页广告卡片过滤,enable=true
 
 [MITM]
-hostname = adtrack.hongyibo.com.cn, api.hongyibo.com.cn, as.hongyibo.com.cn, casper-agent.hongyibo.com.cn, catchdata.hongyibo.com.cn, common.hongyibo.com.cn, conf.hongyibo.com.cn, epassport.hongyibo.com.cn, gift-static.hongyibo.com.cn, gwp.hongyibo.com.cn, httpdns.hongyibo.com.cn, lion.hongyibo.com.cn, map-api.hongyibo.com.cn, map-poi.hongyibo.com.cn, map-trafficrenderapi.hongyibo.com.cn, msggate.hongyibo.com.cn, omgup.hongyibo.com.cn, page.hongyibo.com.cn, res.hongyibo.com.cn, res-new.hongyibo.com.cn, s3-pypu.hongyibo.com.cn, s3-static.hongyibo.com.cn, sec-guard.hongyibo.com.cn, static.hongyibo.com.cn, guanggao-prod.cn-shanghai.log.aliyuncs.com, open-set-api.shenshiads.com, security.honghusaas.com, api.didi.cn, apm.xiaojukeji.com, omgup1.xiaojukeji.com, dpubstatic.udache.com, img-ys011.didistatic.com, s3-hnapuhdd-cdn.didistatic.com, sdk.e.qq.com, mi.gdt.qq.com
+hostname = adtrack.hongyibo.com.cn, api.hongyibo.com.cn, as.hongyibo.com.cn, casper-agent.hongyibo.com.cn, catchdata.hongyibo.com.cn, common.hongyibo.com.cn, conf.hongyibo.com.cn, epassport.hongyibo.com.cn, gift-static.hongyibo.com.cn, gwp.hongyibo.com.cn, httpdns.hongyibo.com.cn, lion.hongyibo.com.cn, map-api.hongyibo.com.cn, map-poi.hongyibo.com.cn, map-trafficrenderapi.hongyibo.com.cn, msggate.hongyibo.com.cn, omgup.hongyibo.com.cn, page.hongyibo.com.cn, res.hongyibo.com.cn, res-new.hongyibo.com.cn, s3-pypu.hongyibo.com.cn, s3-static.hongyibo.com.cn, sec-guard.hongyibo.com.cn, static.hongyibo.com.cn, guanggao-prod.cn-shanghai.log.aliyuncs.com, open-set-api.shenshiads.com, security.honghusaas.com, api.didi.cn, apm.xiaojukeji.com, omgup1.xiaojukeji.com, dpubstatic.udache.com, *.didistatic.com, sdk.e.qq.com, mi.gdt.qq.com

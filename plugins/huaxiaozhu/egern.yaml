@@ -29,6 +29,8 @@ url_rewrites:
     location: "http://reject-dict/"
   - match: '^https://res-new\.hongyibo\.com\.cn/resapi/activity/(?:mget|render)(?:[?#]|$)'
     location: "http://reject-dict/"
+  - match: '^https://[^/]+\.didistatic\.com/static/ad_oss/'
+    location: "http://reject-img/"
 
 scriptings:
   - http_response:
@@ -72,7 +74,6 @@ mitm:
     - "apm.xiaojukeji.com"
     - "omgup1.xiaojukeji.com"
     - "dpubstatic.udache.com"
-    - "img-ys011.didistatic.com"
-    - "s3-hnapuhdd-cdn.didistatic.com"
+    - "*.didistatic.com"
     - "sdk.e.qq.com"
     - "mi.gdt.qq.com"
