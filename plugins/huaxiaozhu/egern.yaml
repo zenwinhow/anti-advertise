@@ -27,6 +27,17 @@ rules:
 url_rewrites:
   - match: '^https://res\.hongyibo\.com\.cn/os/gs/resapi/activity/mget\?_t'
     location: "http://reject-dict/"
+  - match: '^https://res-new\.hongyibo\.com\.cn/resapi/activity/(?:mget|render)(?:[?#]|$)'
+    location: "http://reject-dict/"
+
+scriptings:
+  - http_response:
+      name: "花小猪首页广告卡片过滤"
+      match: '^https://casper-agent\.hongyibo\.com\.cn/agent/v3/(?:feeds|preview)(?:[?#]|$)'
+      script_url: "https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/huaxiaozhu/scripts/egern-feed-filter.js"
+      body_required: true
+      max_size: 524288
+      timeout: 5
 
 mitm:
   hostnames:
