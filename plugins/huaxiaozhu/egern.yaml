@@ -12,6 +12,10 @@ rules:
       match: "guanggao-prod.cn-shanghai.log.aliyuncs.com"
       policy: REJECT
   - domain:
+      name: "拦截第三方广告投放接口"
+      match: "open-set-api.shenshiads.com"
+      policy: REJECT
+  - domain:
       name: "拦截广点通广告 SDK"
       match: "sdk.e.qq.com"
       policy: REJECT

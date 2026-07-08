@@ -11,18 +11,24 @@
 
 ## 匹配依据
 
-规则来自本地抓包 `captures/huaxiaozhu/2026-07-03-164809(1).pcap`。该抓包持续约 9.48 秒，共 1941 个数据包。流量使用 TLS 加密，抓包没有包含解密密钥，因此只能可靠读取 DNS 和 TLS SNI，不能安全确认 HTTPS 请求路径或响应字段。
+规则来自本地抓包：
+
+- `captures/huaxiaozhu/2026-07-03-164809(1).pcap`：持续约 9.48 秒，共 1941 个数据包。
+- `captures/huaxiaozhu/2026-07-08-083718.pcap`：持续约 31.13 秒，共 2934 个数据包。
+
+流量使用 TLS 加密，抓包没有包含解密密钥，因此只能可靠读取 DNS 和 TLS SNI，不能安全确认 HTTPS 请求路径或响应字段。
 
 抓包中出现以下专用广告端点：
 
 | 域名 | 抓包现象 | 用途判断 |
 | --- | --- | --- |
 | `adtrack.hongyibo.com.cn` | 7 次 TLS ClientHello，并有持续加密数据交换 | 花小猪自有广告追踪 |
-| `guanggao-prod.cn-shanghai.log.aliyuncs.com` | 1 次 TLS ClientHello | 独立的广告日志项目 |
-| `sdk.e.qq.com` | 8 次 TLS ClientHello，失败后反复重试 | 腾讯广点通广告 SDK |
-| `mi.gdt.qq.com` | 8 次 TLS ClientHello，失败后反复重试 | 腾讯广点通广告接口 |
+| `guanggao-prod.cn-shanghai.log.aliyuncs.com` | 旧抓包 1 次、新抓包 51 次 TLS ClientHello | 独立的广告日志项目 |
+| `open-set-api.shenshiads.com` | 新抓包出现 4 个 DNS 包；未观察到可解密路径 | 第三方广告投放接口 |
+| `sdk.e.qq.com` | 旧抓包 8 次、新抓包 8 次 TLS ClientHello，失败后反复重试 | 腾讯广点通广告 SDK |
+| `mi.gdt.qq.com` | 旧抓包 8 次、新抓包 16 次 TLS ClientHello，失败后反复重试 | 腾讯广点通广告接口 |
 
-域名拦截部分只使用完整域名规则，不使用域名后缀、通配符或 IP 网段。抓包中还出现 `static.hongyibo.com.cn`、`res-new.hongyibo.com.cn`、`s3-hnapuhdd-cdn.didistatic.com` 等资源主机，但它们同时可能承载地图、活动页或普通图片，规则不会整域阻断这些共享资源。
+域名拦截部分只使用完整域名规则，不使用域名后缀、通配符或 IP 网段。抓包中还出现 `static.hongyibo.com.cn`、`res-new.hongyibo.com.cn`、`s3-hnapuhdd-cdn.didistatic.com`、`s3-pypu.hongyibo.com.cn`、`img-ys011.didistatic.com` 等资源主机，以及若干无 SNI 的直连 IP。它们同时可能承载地图、活动页、普通图片或代理链路流量，规则不会整域或按 IP 阻断这些目标。
 
 此外，插件加入用户补充的预防性活动接口规则：
 
@@ -54,7 +60,8 @@
 
 ## 已知限制
 
-- 抓包只有约 9.48 秒，无法覆盖服务端后续新增或按地区下发的其他广告域名。
+- 首次抓包只有约 9.48 秒，无法覆盖服务端后续新增或按地区下发的其他广告域名。
+- 第二次抓包覆盖约 31.13 秒，但仍未解密 HTTPS 正文；只能确认域名、SNI 和连接时序，无法确认具体广告 JSON 字段。
 - 活动接口规则来自用户补充，未由现有抓包或实机行为验证；若该接口同时返回正常活动内容，可能导致相关活动入口为空。
 - `sdk.e.qq.com` 和 `mi.gdt.qq.com` 是多个 App 共用的广点通端点；启用插件期间，其他 App 的广点通广告也会被阻断。
 - 广告请求失败后，App 可能保留空白广告位；网络层规则无法安全移除原生界面容器。
