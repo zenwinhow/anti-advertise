@@ -15,8 +15,9 @@
 
 - `captures/huaxiaozhu/2026-07-03-164809(1).pcap`：持续约 9.48 秒，共 1941 个数据包。
 - `captures/huaxiaozhu/2026-07-08-083718.pcap`：持续约 31.13 秒，共 2934 个数据包。
+- `captures/huaxiaozhu/2026-07-08-094452.pcap`：`hostname=*` 条件下抓取，持续约 19.89 秒，共 3774 个数据包。
 
-流量使用 TLS 加密，抓包没有包含解密密钥，因此只能可靠读取 DNS 和 TLS SNI，不能安全确认 HTTPS 请求路径或响应字段。
+这些 pcap 在 tshark 协议层级中仍只显示 TLS，没有可直接识别的 HTTP/HTTP2 明文层，因此只能可靠读取 DNS 和 TLS SNI，不能安全确认 HTTPS 请求路径或响应字段。若要看解密后的路径、请求头和 JSON，需在 Surge 的 HTTP Capture / Dashboard 中查看或导出明文记录；普通网卡侧 pcap 即使开启 `hostname=*` 也可能仍是加密 TLS。
 
 抓包中出现以下专用广告端点：
 
@@ -30,6 +31,8 @@
 
 域名拦截部分只使用完整域名规则，不使用域名后缀、通配符或 IP 网段。抓包中还出现 `static.hongyibo.com.cn`、`res-new.hongyibo.com.cn`、`s3-hnapuhdd-cdn.didistatic.com`、`s3-pypu.hongyibo.com.cn`、`img-ys011.didistatic.com` 等资源主机，以及若干无 SNI 的直连 IP。它们同时可能承载地图、活动页、普通图片或代理链路流量，规则不会整域或按 IP 阻断这些目标。
 
+第三次抓包还出现 `s3-static.hongyibo.com.cn`、`dpubstatic.udache.com` 等资源主机。它们已加入 MITM 主机清单，便于后续在 HTTP Capture 中观察，但没有加入 REJECT 规则。
+
 此外，插件加入用户补充的预防性活动接口规则：
 
 ```text
@@ -40,7 +43,9 @@
 
 ## MITM 要求
 
-四条域名规则不需要 MITM。活动接口是 HTTPS URL 级匹配，需要在所用客户端中安装并信任 CA 证书、开启 MITM，并确保 `res.hongyibo.com.cn` 已进入 MITM 主机列表；三个模块已经包含该主机声明。
+五条域名 REJECT 规则本身不需要 MITM。活动接口是 HTTPS URL 级匹配，需要在所用客户端中安装并信任 CA 证书、开启 MITM，并确保 `res.hongyibo.com.cn` 已进入 MITM 主机列表。
+
+为便于继续分析花小猪广告链路，三个模块已经内置三次抓包中出现的花小猪/滴滴/广告相关精确 MITM 主机清单；Surge 模块还追加了同一批 `force-http-engine-hosts`，让这些主机更稳定进入 HTTP 引擎。清单没有使用全局 `*`，也没有纳入 Apple、运营商一键登录等非花小猪广告分析目标。
 
 ## 安装
 
@@ -62,6 +67,7 @@
 
 - 首次抓包只有约 9.48 秒，无法覆盖服务端后续新增或按地区下发的其他广告域名。
 - 第二次抓包覆盖约 31.13 秒，但仍未解密 HTTPS 正文；只能确认域名、SNI 和连接时序，无法确认具体广告 JSON 字段。
+- 第三次抓包虽然使用 `hostname=*`，但导出的 pcap 仍未包含 tshark 可识别的 HTTP/HTTP2 明文层；需要以 Surge HTTP Capture / Dashboard 的明文记录继续分析。
 - 活动接口规则来自用户补充，未由现有抓包或实机行为验证；若该接口同时返回正常活动内容，可能导致相关活动入口为空。
 - `sdk.e.qq.com` 和 `mi.gdt.qq.com` 是多个 App 共用的广点通端点；启用插件期间，其他 App 的广点通广告也会被阻断。
 - 广告请求失败后，App 可能保留空白广告位；网络层规则无法安全移除原生界面容器。
