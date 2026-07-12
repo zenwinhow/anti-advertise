@@ -8,6 +8,7 @@
 | --- | --- | --- | --- | --- |
 | 安鑫物业小程序 | [loon.plugin](plugins/anxin-property/loon.plugin) | [egern.yaml](plugins/anxin-property/egern.yaml) | [surge.sgmodule](plugins/anxin-property/surge.sgmodule) | [查看详情](plugins/anxin-property/README.md) |
 | 花小猪 | [loon.plugin](plugins/huaxiaozhu/loon.plugin) | [egern.yaml](plugins/huaxiaozhu/egern.yaml) | [surge.sgmodule](plugins/huaxiaozhu/surge.sgmodule) | [查看详情](plugins/huaxiaozhu/README.md) |
+| 超鹿运动 | [loon.plugin](plugins/superdeer/loon.plugin) | [egern.yaml](plugins/superdeer/egern.yaml) | [surge.sgmodule](plugins/superdeer/surge.sgmodule) | [查看详情](plugins/superdeer/README.md) |
 
 ## 目录结构
 

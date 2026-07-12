@@ -1,0 +1,12 @@
+#!name=超鹿运动去广告
+#!desc=清理超鹿运动开屏、banner、营销卡片和运营弹窗。
+#!category=广告拦截
+
+[General]
+force-http-engine-hosts = %APPEND% app.chaolu.com.cn
+
+[Script]
+superdeer-ad-filter = type=http-response,pattern=^https:\/\/app\.chaolu\.com\.cn\/(?:app\/(?:getSplashData\/V2|newcomerPower\/banner)|recommend\/(?:app\/banner\/list|generalbanner\/(?:firstLevel|personalCenterBanner)|touchcard\/get|pop\/(?:popUpBottomDialog|commonPush))|homepage\/app\/(?:recommendModel\/findRecommendModel|tofu\/findTofu)|c\/exercise\/banner\/list|scheduleLesson\/popup\/popupStatus)(?:[?#]|$),requires-body=true,max-size=262144,script-path=https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/superdeer/scripts/loon-surge-response.js,timeout=5
+
+[MITM]
+hostname = %APPEND% app.chaolu.com.cn
