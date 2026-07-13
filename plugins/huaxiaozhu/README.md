@@ -1,96 +1,80 @@
 # 花小猪去广告
 
-花小猪 App 广告域名及活动接口处理插件，支持 Loon、Egern 和 Surge。
+用于拦截花小猪 App 的部分广告端点、活动接口、首页广告卡片和广告素材，支持 Loon、Egern 和 Surge。
 
-## 文件
+## 功能概览
 
-- `loon.plugin`：Loon 插件
-- `egern.yaml`：Egern 模块
-- `surge.sgmodule`：Surge 模块
-- `scripts/surge-activity-mget.js`：为 Surge 返回空 JSON 对象的请求脚本
-- `scripts/surge-activity-empty.js`：为 Surge 清空 `res-new` 活动接口的请求脚本
-- `scripts/loon-surge-feed-filter.js`：为 Loon/Surge 过滤首页 feed 广告卡片的响应脚本
-- `scripts/egern-feed-filter.js`：为 Egern 过滤首页 feed 广告卡片的响应脚本
-
-## 匹配依据
-
-规则来自本地抓包：
-
-- `captures/huaxiaozhu/2026-07-03-164809(1).pcap`：持续约 9.48 秒，共 1941 个数据包。
-- `captures/huaxiaozhu/2026-07-08-083718.pcap`：持续约 31.13 秒，共 2934 个数据包。
-- `captures/huaxiaozhu/2026-07-08-094452.pcap`：`hostname=*` 条件下抓取，持续约 19.89 秒，共 3774 个数据包。
-- `captures/huaxiaozhu/119_1783474769989.har`：Loon HTTPS 明文捕获，共 173 条请求。
-- `captures/huaxiaozhu/121_1783477298603.har`：Loon HTTPS 明文捕获，共 322 条请求，覆盖更多广告素材下载。
-
-这些 pcap 在 tshark 协议层级中仍只显示 TLS，没有可直接识别的 HTTP/HTTP2 明文层，因此只能可靠读取 DNS 和 TLS SNI，不能安全确认 HTTPS 请求路径或响应字段。若要看解密后的路径、请求头和 JSON，需在 Surge 的 HTTP Capture / Dashboard 中查看或导出明文记录；普通网卡侧 pcap 即使开启 `hostname=*` 也可能仍是加密 TLS。
-
-抓包中出现以下专用广告端点：
-
-| 域名 | 抓包现象 | 用途判断 |
+| 类型 | 匹配目标 | 处理方式 |
 | --- | --- | --- |
-| `adtrack.hongyibo.com.cn` | 7 次 TLS ClientHello，并有持续加密数据交换 | 花小猪自有广告追踪 |
-| `guanggao-prod.cn-shanghai.log.aliyuncs.com` | 旧抓包 1 次、新抓包 51 次 TLS ClientHello | 独立的广告日志项目 |
-| `open-set-api.shenshiads.com` | 新抓包出现 4 个 DNS 包；未观察到可解密路径 | 第三方广告投放接口 |
-| `sdk.e.qq.com` | 旧抓包 8 次、新抓包 8 次 TLS ClientHello，失败后反复重试 | 腾讯广点通广告 SDK |
-| `mi.gdt.qq.com` | 旧抓包 8 次、新抓包 16 次 TLS ClientHello，失败后反复重试 | 腾讯广点通广告接口 |
+| 广告与追踪域名 | 5 个完整域名 | 拒绝连接 |
+| 活动接口 | `res.hongyibo.com.cn`、`res-new.hongyibo.com.cn` 的指定路径 | 返回空 JSON 数据 |
+| 首页 Feed | `casper-agent.hongyibo.com.cn` 的指定路径 | 删除具有广告标记或广告素材的卡片 |
+| 广告素材 | `*.didistatic.com/static/ad_oss/` | 按路径拒绝图片和 GIF |
 
-域名拦截部分只使用完整域名规则，不使用域名后缀、通配符或 IP 网段。抓包中还出现 `static.hongyibo.com.cn`、`res-new.hongyibo.com.cn`、`s3-hnapuhdd-cdn.didistatic.com`、`s3-pypu.hongyibo.com.cn`、`img-ys011.didistatic.com` 等资源主机，以及若干无 SNI 的直连 IP。它们同时可能承载地图、活动页、普通图片或代理链路流量，规则不会整域或按 IP 阻断这些目标。
+## 域名匹配依据
 
-第三次抓包还出现 `s3-static.hongyibo.com.cn`、`dpubstatic.udache.com` 等资源主机。它们已加入 MITM 主机清单，便于后续在 HTTP Capture 中观察，但没有加入 REJECT 规则。
+经网络流量分析识别出以下广告相关端点：
 
-Loon HAR 明文捕获确认了以下广告相关响应：
+| 域名 | 用途 |
+| --- | --- |
+| `adtrack.hongyibo.com.cn` | 花小猪广告追踪 |
+| `guanggao-prod.cn-shanghai.log.aliyuncs.com` | 广告日志上报 |
+| `open-set-api.shenshiads.com` | 第三方广告投放接口 |
+| `sdk.e.qq.com` | 腾讯广点通广告 SDK |
+| `mi.gdt.qq.com` | 腾讯广点通广告接口 |
 
-| 接口 | 抓包现象 | 处理方式 |
+域名规则仅匹配以上完整域名，不使用域名后缀或 IP 网段。花小猪、滴滴及其 CDN 的其他主机可能同时承载地图、活动页、图片、字体或组件资源，因此不做整域阻断。
+
+## 接口与响应处理
+
+| 主机和路径 | 识别到的内容 | 处理方式 |
 | --- | --- | --- |
-| `res-new.hongyibo.com.cn/resapi/activity/mget` | 返回 `p_startpage` 开屏和 `p_home_popup` 首页弹窗 | 路径级返回空 JSON 对象 |
-| `res-new.hongyibo.com.cn/resapi/activity/render` | 返回 `p_advertisement_home_brand_minds` 品牌广告位 | 路径级返回空 JSON 对象 |
-| `casper-agent.hongyibo.com.cn/agent/v3/feeds` | 首页 feed 中存在广告卡片、外部商业广告标记，以及包含 `/static/ad_oss/` 的素材卡片 | 响应脚本删除广告卡片并保留其余卡片 |
-| `casper-agent.hongyibo.com.cn/agent/v3/preview` | 预览配置中包含首页 banner 模板 | 响应脚本复用同一过滤逻辑 |
-| `*.didistatic.com/static/ad_oss/` | 第二份 HAR 中集中出现广告图片和 GIF 素材；`img-ys011` 这类桶名前缀可能变化 | 路径级素材兜底拦截 |
+| `res-new.hongyibo.com.cn/resapi/activity/mget` | 开屏与首页弹窗 | 返回成功状态和空数据对象 |
+| `res-new.hongyibo.com.cn/resapi/activity/render` | 首页品牌广告位 | 返回成功状态和空数据对象 |
+| `casper-agent.hongyibo.com.cn/agent/v3/feeds` | 首页 Feed 广告卡片 | 删除广告卡片，保留其他卡片 |
+| `casper-agent.hongyibo.com.cn/agent/v3/preview` | 首页预览与 Banner 模板 | 使用相同的卡片过滤逻辑 |
+| `*.didistatic.com/static/ad_oss/` | 广告图片和 GIF | 按广告素材路径拒绝 |
 
-此外，插件加入用户补充的预防性活动接口规则：
+首页 Feed 脚本会识别 `is_external_commercial_ad`、模板类型中的 `external_commercial_ad`、已知广告卡片 ID，以及包含 `/static/ad_oss/` 的素材。共享资源主机若不包含该广告路径，则不会被素材规则阻断。
+
+插件还包含以下兼容性规则：
 
 ```text
 ^https://res\.hongyibo\.com\.cn/os/gs/resapi/activity/mget\?_t
 ```
 
-命中后返回 HTTP 200 和空 JSON 对象 `{}`。原始抓包中存在 `res.hongyibo.com.cn` 的 DNS 查询，但 TLS 正文未解密，无法从该抓包确认这条路径是否实际承载广告，因此它作为预防性规则保留。Loon 和 Egern 使用原生 `reject-dict`；Surge 使用本地请求脚本提供相同响应。
+该接口命中后返回 HTTP 200 和空 JSON 对象 `{}`。它属于预防性规则，无法保证接口只承载广告；如果同时承载正常活动内容，相关入口也可能变为空白。
 
-`res-new.hongyibo.com.cn/resapi/activity/mget` 和 `/render` 来自 Loon HAR 明文捕获。Loon 和 Egern 使用原生 `reject-dict`；Surge 使用请求脚本返回 `{"errno":0,"errmsg":"success","data":{}}`，避免活动数据继续下发。
+## 文件
 
-`121_1783477298603.har` 显示部分首页 feed 卡片不再携带明显的 `external_commercial_ad` 标记，但内部图片仍指向 `/static/ad_oss/`。`img-ys011` 这类 didistatic 桶名前缀可能随地区、机房或调度变化，因此素材兜底规则使用 `*.didistatic.com/static/ad_oss/`，靠路径限定广告素材目录，而不是写死单个桶名。首页 feed 脚本也会将包含该广告素材路径的卡片视为广告卡片并删除。`gift-static.hongyibo.com.cn`、`ut-static.udache.com`、`s3-pypu.hongyibo.com.cn`、`s3-hnapuhdd-cdn.didistatic.com` 等仍承载普通 UI、字体、组件包或业务资源，不做整域/整目录阻断。
+- `loon.plugin`：Loon 插件。
+- `egern.yaml`：Egern 模块。
+- `surge.sgmodule`：Surge 模块。
+- `scripts/loon-surge-feed-filter.js`：Loon 与 Surge 首页 Feed 过滤脚本。
+- `scripts/egern-feed-filter.js`：Egern 首页 Feed 过滤脚本。
+- `scripts/surge-activity-mget.js`：Surge 兼容性活动接口脚本。
+- `scripts/surge-activity-empty.js`：Surge `res-new` 活动接口脚本。
 
 ## MITM 要求
 
-五条域名 REJECT 规则本身不需要 MITM。活动接口和首页 feed 过滤是 HTTPS URL/响应体级处理，需要在所用客户端中安装并信任 CA 证书、开启 MITM，并确保 `res.hongyibo.com.cn`、`res-new.hongyibo.com.cn`、`casper-agent.hongyibo.com.cn` 已进入 MITM 主机列表。
+五条完整域名拒绝规则不需要 MITM。活动接口、素材 URL 和首页响应体处理需要安装并信任客户端 CA 证书，并开启 MITM。
 
-为便于继续分析花小猪广告链路，三个模块已经内置三次抓包中出现的花小猪/滴滴/广告相关精确 MITM 主机清单；Surge 模块还追加了同一批 `force-http-engine-hosts`，让这些主机更稳定进入 HTTP 引擎。清单没有使用全局 `*`，也没有纳入 Apple、运营商一键登录等非花小猪广告分析目标。
+配置中的 MITM 主机范围大于实际改写目标，用于让相关业务连接进入客户端 HTTP 处理链；这些附加主机不会因为出现在 MITM 列表中而自动被拒绝。Surge 模块还会把同一组主机追加到 `force-http-engine-hosts`。
+
+使用 HTTPS 解密前，请检查配置中的主机清单，并了解证书信任带来的隐私和安全影响。
 
 ## 安装
 
-### Loon
+分别复制 `loon.plugin`、`egern.yaml` 或 `surge.sgmodule` 的 GitHub Raw 地址，在对应客户端的插件或模块页面通过 URL 添加并启用。
 
-复制 `loon.plugin` 的 GitHub Raw 地址，在 Loon 插件页面通过 URL 添加并启用。
-
-### Egern
-
-复制 `egern.yaml` 的 GitHub Raw 地址，在 Egern 的“工具 → 模块”中添加并启用。
-
-### Surge
-
-复制 `surge.sgmodule` 的 GitHub Raw 地址，在 Surge 的模块页面通过 URL 安装并启用。
-
-启用后彻底结束花小猪进程再重新打开。若仍显示旧广告素材，需等待或清理 App 缓存后复测。
+启用后完全退出花小猪再重新打开。旧广告素材仍然显示时，可清理 App 缓存后重试。
 
 ## 已知限制
 
-- 首次抓包只有约 9.48 秒，无法覆盖服务端后续新增或按地区下发的其他广告域名。
-- 第二次抓包覆盖约 31.13 秒，但仍未解密 HTTPS 正文；只能确认域名、SNI 和连接时序，无法确认具体广告 JSON 字段。
-- 第三次抓包虽然使用 `hostname=*`，但导出的 pcap 仍未包含 tshark 可识别的 HTTP/HTTP2 明文层；需要以 Surge HTTP Capture / Dashboard 的明文记录继续分析。
-- 活动接口规则来自用户补充，未由现有抓包或实机行为验证；若该接口同时返回正常活动内容，可能导致相关活动入口为空。
-- `res-new` 活动接口规则来自 Loon 明文 HAR，可移除开屏、首页弹窗和品牌广告位；若该接口也承载正常活动运营位，相关活动入口会被隐藏。
-- 首页 feed 脚本会删除明确广告卡片，以及包含 `/static/ad_oss/` 广告素材路径的卡片；若花小猪改名或新增广告字段，可能需要再次根据 HAR 调整。
-- 素材兜底规则只拦截 `*.didistatic.com/static/ad_oss/`，不拦截 `gift-static`、`ut-static`、`s3-pypu` 等共享资源主机，避免破坏普通首页组件或业务页面。
-- `sdk.e.qq.com` 和 `mi.gdt.qq.com` 是多个 App 共用的广点通端点；启用插件期间，其他 App 的广点通广告也会被阻断。
-- 广告请求失败后，App 可能保留空白广告位；网络层规则无法安全移除原生界面容器。
-- 激励广告、广告奖励或依赖广告完成状态的活动可能无法使用。
+- 服务端可能按地区、账号状态或版本下发不同广告，未识别的域名、路径和字段不会被处理。
+- 预防性活动接口和 `res-new` 接口可能同时承载正常运营内容，相关活动入口可能被隐藏。
+- 首页脚本依赖当前广告标记、卡片 ID 和素材路径；结构变化后需要更新过滤逻辑。
+- `sdk.e.qq.com` 和 `mi.gdt.qq.com` 为多个 App 共用，启用期间其他 App 的广点通广告也可能被阻断。
+- 网络层规则可能只移除素材，无法收起 App 原生广告容器，因此界面中可能留下空白区域。
+- 激励广告及依赖广告完成状态的奖励或活动可能无法使用。
+- SSL Pinning、QUIC 或其他绕过 HTTP 处理链的连接可能导致 URL 和响应脚本无法命中。

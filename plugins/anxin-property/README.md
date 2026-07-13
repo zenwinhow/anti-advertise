@@ -1,156 +1,95 @@
-# Anxin Property
+# 安鑫物业小程序去广告
 
-安鑫物业微信小程序广告素材拦截插件，支持 Loon、Egern 和 Surge。
+用于拦截安鑫物业微信小程序中的广告视频、封面和静态创意，支持 Loon、Egern 和 Surge。
 
-> 各客户端实现不同：Egern 使用抓包路径精确复写；Surge 在精确路径基础上强制进入 HTTP Engine；Loon 仍保留针对原生回源的激进兜底。
-
-## 文件
-
-- `loon.plugin`：Loon 插件
-- `loon-priority-rules.list`：需复制到 Loon 主配置最前面的高优先级 IP 规则
-- `egern.yaml`：Egern 原生模块
-- `surge.sgmodule`：Surge 模块（推荐用于微信原生 TCP 回源）
-- `scripts/`：请求阶段本地响应脚本
+三个客户端的实现并不完全相同：Egern 与 Surge 优先使用精确路径匹配；Surge 会强制目标连接进入 HTTP Engine；Loon 还提供域名、DoH 和 IP 网段级的激进兜底。重视兼容性时建议优先尝试 Surge 或 Egern。
 
 ## 匹配依据
 
-广告视频、封面和静态创意由以下微信素材主机提供：
+经网络流量分析，广告素材来自以下微信共享素材主机：
 
 - `wxsmw.wxs.qq.com`
 - `wxsnsdy.wxs.qq.com`
 - `wxsnsdythumb.wxs.qq.com`
 - `wximg.wxs.qq.com`
 
-视频及封面具有以下稳定路径特征：
+插件识别两类稳定路径特征：
 
 ```text
 /snssvpdownload/SH/reserved/ads_svp_video__
+/snscosdownload/<可变目录>/reserved/<包含 0000008d00004eec 的资源名>
 ```
 
-后续抓包发现，部分静态广告创意使用另一类路径，资源文件名中带有稳定业务标记：
-
-```text
-/snscosdownload/<region>/reserved/<resource-id-containing-0000008d00004eec>
-```
-
-新旧抓包中该标记对应的响应均为广告创意，包括视频首帧、商品图和游戏推广图。规则同时限定 `wximg.wxs.qq.com` 或 `wxsnsdythumb.wxs.qq.com`、`snscosdownload`、`reserved` 目录及 `0000008d00004eec` 标记，避免扩大到微信 CDN 的其他资源。
-
-这些特征前的 CDN 目录按可变路径处理，不依赖 `/131/20204/`、`/131/20210/`、`/141/20204/` 等可能变化的目录。规则不会整域拦截 `*.wxs.qq.com`。
+第一类用于广告视频及封面，第二类用于视频首帧、商品图和游戏推广图等静态创意。规则允许前置 CDN 目录变化，并同时限定主机、目录和资源标记，避免扩大到整个 `*.wxs.qq.com`。
 
 安鑫物业业务接口 `wechat.zhtxcom.com` 不在拦截范围内。
 
-## 为什么部分客户端使用域名级阻断
+## 各客户端的处理方式
 
-后续抓包显示，同一个广告图片 URL 会出现两条请求链：
+| 客户端 | 策略 | 主要取舍 |
+| --- | --- | --- |
+| Loon | 精确 URL、四个素材域名、指定 DoH 查询和已识别 CDN 网段多层阻断 | 命中能力强，但可能影响其他微信小程序 |
+| Egern | 仅处理已识别的素材主机和精确广告路径 | 影响范围较小，原生回源可能绕过处理 |
+| Surge | 精确路径匹配，并用 `force-http-engine-hosts` 和 `tcp-connection` 处理原生 TCP 回源 | 对原生回源更有针对性，不整域阻断 |
 
-1. 小程序 WebKit 请求命中 URL 复写并收到空响应。
-2. 微信原生 CFNetwork 随后请求完全相同的 URL，并成功取得真实图片。
+微信可能先由小程序 WebKit 请求素材，再由原生网络栈对同一地址回源。只做 URL 复写时，第二条连接可能仍取得素材。Surge 因此强制四个目标主机的 443 连接进入 HTTP Engine；Loon 则使用影响范围更大的多层兜底。
 
-因此只使用 URL 复写仍可能留下静态广告。Loon 版本直接拒绝以下四个已确认的素材主机，并保留精确 URL 规则作为第二层防线：
+### Loon 的 DoH 与 IP 兜底
 
-- `wximg.wxs.qq.com`
-- `wxsmw.wxs.qq.com`
-- `wxsnsdy.wxs.qq.com`
-- `wxsnsdythumb.wxs.qq.com`
-
-Egern 与 Surge 版本不再整站拒绝这些共享素材主机，只处理已确认的广告路径。物业自身的图片来自 `wechat.zhtxcom.com`，不受规则影响。
-
-## 为什么还要拦截 DoH
-
-最新抓包显示，微信会同时请求以下公共 DoH 服务，自行解析广告素材主机：
-
-- `dns.alidns.com`
-- `doh.pub`
-
-查询内容明确包含 `wximg.wxs.qq.com` 和 `wxsmw.wxs.qq.com`。这条应用内 DNS 路径会绕过普通 Host 映射，随后原生 CFNetwork 使用解析结果直接回源。
-
-Loon 的激进版本增加以下防线：
+微信可能通过 `dns.alidns.com` 或 `doh.pub` 自行解析素材主机，并使用缓存的 CDN IP 直接连接。Loon 配置会：
 
 1. 将四个素材主机映射到 `0.0.0.0`。
-2. 对两个公共 DoH 服务，仅阻断查询四个素材主机的 DNS 报文。
-3. 继续保留域名规则和精确素材 URL 规则。
+2. 仅拦截查询这四个主机的指定 DoH 请求。
+3. 拒绝已识别的素材 CDN `/24` 网段。
+4. 保留域名和精确 URL 规则。
 
-Egern 与 Surge 精确版本不拦截公共 DoH，避免影响页面和其他应用的正常解析。
+Egern 与 Surge 不拦截公共 DoH 或 CDN IP，以降低对其他页面和应用的影响。CDN 地址可能随地区和时间变化，Loon 的网段规则既可能失效，也可能误伤同一网段上的其他服务。
 
-## 为什么还要阻断 IP 网段
+### Loon 规则优先级
 
-后续抓包中没有出现广告素材主机的 DNS 查询，但微信仍然直接连接 `wximg.wxs.qq.com` 并成功取得多张广告图。这表示微信或系统继续使用此前 DoH 响应缓存的真实 CDN IP。
+主配置中的 `GEOIP,CN,DIRECT`、其他中国 IP 直连规则或 `FINAL` 可能先于插件网段规则生效。使用 Loon 时，请将 `loon-priority-rules.list` 的内容复制到主配置 `[Rule]` 顶部，并放在这些规则之前。该文件使用 `REJECT-DROP`，仅作为普通规则订阅时不一定具有足够优先级。
 
-连接由应用自行解析并使用目标 IP 发起时，分流阶段可能看不到原始域名，域名规则因而无法命中。Loon 激进版本从 DoH 响应提取过以下素材 CDN `/24` 网段：
+## 文件
 
-```text
-27.152.184.0/24
-121.204.225.0/24
-121.204.229.0/24
-124.72.129.0/24
-171.105.26.0/24
-171.108.209.0/24
-171.108.210.0/24
-171.108.216.0/24
-220.160.46.0/24
-```
+- `loon.plugin`：Loon 激进模式插件。
+- `loon-priority-rules.list`：需放在 Loon 主配置 `[Rule]` 顶部的高优先级网段规则。
+- `egern.yaml`：Egern 精确路径模块。
+- `surge.sgmodule`：Surge 精确路径与强制 HTTP Engine 模块。
+- `scripts/`：各客户端使用的请求阶段响应脚本。
 
-Egern 精确版本不包含 IP 网段规则。CDN 地址会随地区和时间变化，按 IP 拦截容易误伤同网段的页面资源，因此不适合当前 Egern 方案。
+## MITM 要求
 
-### Loon 规则优先级陷阱
-
-Loon 的本地规则优先级高于插件规则。常见主配置通常包含 `GEOIP,CN,DIRECT`、中国 IP 直连或其他本地 `DIRECT` 规则；应用通过 HTTPDNS 直接连接中国 CDN IP 时，这些本地规则会先放行流量，插件内的 `IP-CIDR ... REJECT` 不会再执行。
-
-抓包已验证这种情况：DoH 返回的 `124.72.129.36`、`121.204.229.162` 都位于插件声明的拦截网段内，但请求仍然成功。
-
-使用 Loon 时，需要打开主配置，把 `loon-priority-rules.list` 中的规则复制到主配置 `[Rule]` 顶部，并确保它们位于以下规则之前：
+精确 HTTPS 路径处理需要安装并信任所用客户端的 CA 证书，并开启 MITM。目标主机如下：
 
 ```text
-GEOIP,CN,DIRECT
-其他中国 IP 或本地 DIRECT 规则
-FINAL
+wxsmw.wxs.qq.com
+wxsnsdy.wxs.qq.com
+wxsnsdythumb.wxs.qq.com
+wximg.wxs.qq.com
 ```
 
-优先规则使用 `REJECT-DROP`，避免微信收到失败响应后快速重试。仅把该文件作为普通规则订阅仍可能受到优先级影响，推荐直接放进主配置本地规则顶部。
-
-## 原始 TCP 与 Surge 强制 HTTP 引擎
-
-最新抓包继续出现一种稳定现象：WebKit 请求会命中复写，而 WeChat 原生 CFNetwork 对完全相同 URL 的请求仍能返回真实 JPEG。这符合“原始 TCP 连接只被识别出 HTTP 头、但未进入完整 HTTP 处理引擎”的特征。此时代理可以记录请求和响应头，却不会执行 URL 复写或脚本。
-
-Surge 提供 `force-http-engine-hosts`，能够把指定主机的原始 TCP 连接强制交给 HTTP 引擎。`surge.sgmodule` 同时启用：
-
-1. `force-http-engine-hosts` 强制处理四个素材主机的 443 端口。
-2. MITM 的 `tcp-connection` 模式。
-3. URL Rewrite 仅拒绝 `ads_svp_video__` 和 `0000008d00004eec` 两类抓包特征。
-4. 精确路径请求脚本直接中断请求，尝试触发小程序广告组件的加载失败回调。
-
-Surge 不再使用整域 `REJECT-TINYGIF`，也不包含公共 DoH 或 IP 网段规则。Loon 和 Egern 官方文档没有提供与 Surge `force-http-engine-hosts` 完全对应的强制引擎选项，因此对于这条原生回源链，Surge 方案更有针对性。
+Loon 还会将 `dns.alidns.com` 和 `doh.pub` 加入 MITM，以匹配指定的 DoH 查询。使用 HTTPS 解密前，请了解证书信任带来的隐私和安全影响。
 
 ## 安装
 
 ### Loon
 
-导入 `loon.plugin` 并启用。安装并信任 Loon CA 证书，确保 HTTPS 解密/MITM 已开启。
-
-然后将 `loon-priority-rules.list` 的内容复制到主配置 `[Rule]` 最前面。只导入插件不足以覆盖优先级更高的本地直连规则。
+通过 GitHub Raw 地址导入并启用 `loon.plugin`，安装并信任 Loon CA 证书，然后开启 MITM。再将 `loon-priority-rules.list` 的内容复制到主配置 `[Rule]` 最前面；只导入插件可能无法覆盖更早生效的本地直连规则。
 
 ### Egern
 
-在“工具 → 模块”中添加 `egern.yaml` 并启用。更新已有模块时，先删除旧缓存或重新添加模块，再完全停止 Egern 与微信后重新打开。
-
-安装并信任 Egern CA 证书。为本次验证，在“全部连接 → …”中开启“全局 MITM”；“HTTP 全局抓包”只用于确认请求是否进入 HTTP 处理链，不影响拦截结果，可按需开启。
-
-Egern 模块仅复写抓包确认的三类素材：广告 MP4、`ads_svp_video__` 封面图，以及资源 ID 带 `0000008d00004eec` 的静态创意。它不会整站阻断四个微信素材主机，也不包含公共 DoH 或 IP 网段规则。
+在“工具 → 模块”中通过 GitHub Raw 地址添加并启用 `egern.yaml`，安装并信任 Egern CA 证书，然后开启 MITM。该模块不会整域拒绝微信共享素材主机。
 
 ### Surge
 
-导入 `surge.sgmodule` 并启用。安装并信任 Surge CA 证书，开启 MITM、URL Rewrite 和脚本功能。该模块会自动追加强制 HTTP 引擎主机及 MITM 主机。若广告容器没有消失但素材已空白，说明小程序没有在广告加载失败时收起外层 WXML 容器，网络层无法继续安全处理。
+在模块页面通过 GitHub Raw 地址导入并启用 `surge.sgmodule`，安装并信任 Surge CA 证书，并开启 MITM、URL Rewrite 和脚本功能。模块会自动追加目标 HTTP Engine 与 MITM 主机。
 
-若微信仍使用缓存的广告素材，请彻底退出微信或清理小程序缓存后重试。
-
-更新到本版本后，应先停止再重新启动 Loon/Egern，彻底结束微信进程，然后重新打开小程序。否则微信可能继续使用升级前缓存的 CDN IP 和图片。
+安装或更新后，请彻底退出微信并重新进入小程序。旧素材仍显示时，可清理微信小程序缓存后重试。
 
 ## 已知限制
 
-广告控制和元数据请求封装在微信 `mmtls` 流量中，现有抓包没有暴露可安全复写的 JSON 响应。当前规则会阻止广告视频和封面下载，但小程序中仍可能留下空白广告位。
-
-不要将整个 `*.wxs.qq.com` 配置为 `REJECT`，否则可能影响其他微信小程序的图片、字体和媒体资源。
-
-Loon 的激进兜底会完整阻断上面列出的四个共享素材主机，可能导致其他微信小程序中的图片、视频或缩略图无法加载。Egern 与 Surge 精确版本没有这一行为。
-
-Loon 的 IP 网段规则比域名规则影响更广，可能误伤同一运营商或腾讯 CDN 网段上的其他服务。
+- 广告控制和元数据可能位于微信专有加密流量中；当前规则主要阻止素材下载，无法保证广告容器一并消失。
+- 不应手动把整个 `*.wxs.qq.com` 配置为拒绝，否则可能影响其他微信小程序的图片、字体和媒体资源。
+- Loon 会完整拒绝四个共享素材主机，并阻断部分 CDN 网段，误伤风险明显高于 Egern 和 Surge。
+- CDN 主机、地址或素材路径变化后，现有规则可能失效。
+- SSL Pinning、QUIC、缓存或未进入客户端 HTTP 处理链的连接可能绕过精确路径规则。
