@@ -1,6 +1,10 @@
 name: "超鹿运动去广告"
-description: "清理超鹿运动开屏、banner、营销卡片和运营弹窗。"
+description: "清理超鹿运动开屏、banner、营销卡片、运营弹窗和推广图片。"
 icon: "shield.lefthalf.filled"
+
+url_rewrites:
+  - match: '^https://img\.chaolu\.com\.cn/[^?#]*(?:invite-gift|88sale2026|paymentSuccessPromo)[^?#]*(?:[?#]|$)'
+    location: "http://reject-img/"
 
 scriptings:
   - http_response:
@@ -14,3 +18,4 @@ scriptings:
 mitm:
   hostnames:
     - "app.chaolu.com.cn"
+    - "img.chaolu.com.cn"

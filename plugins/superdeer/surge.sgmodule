@@ -1,12 +1,16 @@
 #!name=超鹿运动去广告
-#!desc=清理超鹿运动开屏、banner、营销卡片和运营弹窗。
+#!desc=清理超鹿运动开屏、banner、营销卡片、运营弹窗和推广图片。
 #!category=广告拦截
 
 [General]
-force-http-engine-hosts = %APPEND% app.chaolu.com.cn
+force-http-engine-hosts = %APPEND% app.chaolu.com.cn, img.chaolu.com.cn
+
+[URL Rewrite]
+# 拦截超鹿图片主机上带有已确认推广目录关键字的图片请求。
+^https:\/\/img\.chaolu\.com\.cn\/[^?#]*(?:invite-gift|88sale2026|paymentSuccessPromo)[^?#]*(?:[?#]|$) _ reject
 
 [Script]
 superdeer-ad-filter = type=http-response,pattern=^https:\/\/app\.chaolu\.com\.cn\/(?:app\/(?:getSplashData\/V2|newcomerPower\/banner)|recommend\/(?:app\/banner\/list|generalbanner\/(?:firstLevel|personalCenterBanner)|touchcard\/get|pop\/(?:popUpBottomDialog|commonPush))|homepage\/app\/(?:recommendModel\/findRecommendModel|tofu\/findTofu)|c\/exercise\/banner\/list|scheduleLesson\/popup\/popupStatus)(?:[?#]|$),requires-body=true,max-size=262144,script-path=https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/superdeer/scripts/loon-surge-response.js,timeout=5
 
 [MITM]
-hostname = %APPEND% app.chaolu.com.cn
+hostname = %APPEND% app.chaolu.com.cn, img.chaolu.com.cn
