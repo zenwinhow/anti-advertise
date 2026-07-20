@@ -1,11 +1,21 @@
-name: "安鑫物业小程序去广告"
-description: "按抓包路径精确拦截安鑫物业小程序中的微信广告视频、封面和静态创意，不阻断共享素材主机的其他内容。"
+name: "安鑫物业小程序去广告与外跳防护"
+description: "拦截安鑫物业小程序中的微信广告素材，并仅按安鑫来源标识处理已确认的外部推广请求，不封锁淘宝闪购。"
 icon: "shield.lefthalf.filled"
 
 rules:
+  - ip_cidr:
+      name: "拦截广告静态素材直接回源"
+      match: "121.204.229.15/32"
+      policy: REJECT
+      no_resolve: true
+  - ip_cidr:
+      name: "拦截广告视频直接回源"
+      match: "125.77.148.189/32"
+      policy: REJECT
+      no_resolve: true
   - url_regex:
       name: "拦截微信广告视频及封面"
-      match: '^https://(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com/(?:[^/?#]+/)*snssvpdownload/SH/reserved/ads_svp_video__'
+      match: '^https://(?:wxsmw\.wxs\.qq\.com(?:\.tcdnvod\.com)?|(?:wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com)/(?:[^/?#]+/)*snssvpdownload/SH/reserved/ads_svp_video__'
       policy: REJECT
   - url_regex:
       name: "拦截微信广告静态创意"
@@ -13,23 +23,33 @@ rules:
       policy: REJECT
 
 url_rewrites:
-  - match: '^https://(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com/(?:[^/?#]+/)*snssvpdownload/SH/reserved/ads_svp_video__[^?#]*\.mp4(?:[?#]|$)'
+  - match: '^https://(?:wxsmw\.wxs\.qq\.com(?:\.tcdnvod\.com)?|(?:wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com)/(?:[^/?#]+/)*snssvpdownload/SH/reserved/ads_svp_video__[^?#]*\.mp4(?:[?#]|$)'
     location: "http://reject-video/"
-  - match: '^https://(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com/(?:[^/?#]+/)*snssvpdownload/SH/reserved/ads_svp_video__[^?#]*\.(?:jpe?g|png|webp)(?:[?#]|$)'
+  - match: '^https://(?:wxsmw\.wxs\.qq\.com(?:\.tcdnvod\.com)?|(?:wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com)/(?:[^/?#]+/)*snssvpdownload/SH/reserved/ads_svp_video__[^?#]*\.(?:jpe?g|png|webp)(?:[?#]|$)'
     location: "http://reject-img/"
   - match: '^https://(?:wxsnsdythumb|wximg)\.wxs\.qq\.com/(?:[^/?#]+/)*snscosdownload/(?:[^/?#]+/)*reserved/[^/?#]*0000008d00004eec[^/?#]*(?:[?#]|$)'
+    location: "http://reject-img/"
+  - match: '^https://wxa\.wxs\.qq\.com/wxad-design/'
     location: "http://reject-img/"
 
 scriptings:
   - http_request:
       name: "安鑫物业广告本地响应"
-      match: '^https://(?:wxsmw|wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com/(?:[^/?#]+/)*(?:snssvpdownload/SH/reserved/ads_svp_video__|snscosdownload/(?:[^/?#]+/)*reserved/[^/?#]*0000008d00004eec)'
+      match: '^https://(?:wxsmw\.wxs\.qq\.com(?:\.tcdnvod\.com)?|(?:wxsnsdy|wxsnsdythumb|wximg)\.wxs\.qq\.com)/(?:[^/?#]+/)*(?:snssvpdownload/SH/reserved/ads_svp_video__|snscosdownload/(?:[^/?#]+/)*reserved/[^/?#]*0000008d00004eec)'
       script_url: "https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/anxin-property/scripts/egern-request.js"
+      timeout: 5
+  - http_request:
+      name: "安鑫物业来源推广请求拦截"
+      match: '^https://webgw\.alipay-eco\.com/'
+      script_url: "https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/plugins/anxin-property/scripts/egern-source-guard.js"
       timeout: 5
 
 mitm:
   hostnames:
     - "wxsmw.wxs.qq.com"
+    - "wxsmw.wxs.qq.com.tcdnvod.com"
     - "wxsnsdy.wxs.qq.com"
     - "wxsnsdythumb.wxs.qq.com"
     - "wximg.wxs.qq.com"
+    - "wxa.wxs.qq.com"
+    - "webgw.alipay-eco.com"
