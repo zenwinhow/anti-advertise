@@ -1,0 +1,12 @@
+#!name=节点 IP 质量检测
+#!desc=在 Surge Information Panel 中显示当前策略经出口节点的 IP、类型、风险及流媒体/AI 可用性。刷新面板即触发；面板绑定的策略在模块参数中配置。
+#!category=工具
+#!system=ios
+#!arguments=policy=Proxy&media=true&mask=false&netflix_title=81280792&timeout=8
+#!arguments-desc=policy: 用于检测的策略或策略组名（例如 Proxy、节点选择）。脚本通过 $httpClient 的 policy 参数走该策略当前生效的节点，切换节点后重新刷新面板即可。\nmedia: 是否检测 Netflix / Disney+ / YouTube Premium / ChatGPT / Gemini。\nmask: 是否在输出中对 IP 做遮罩。\nnetflix_title: 用于 Netflix 检测的标题 ID，默认 81280792（非独占）。\ntimeout: 单个 HTTP 请求超时（秒，3-20）。
+
+[Panel]
+IPQuality = title="节点 IP 质量", content="下拉刷新以检测当前策略节点的 IP 质量。", style=info, script-name=ip-quality-panel
+
+[Script]
+ip-quality-panel = type=generic,script-path=https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/modules/ip-quality/scripts/surge-panel.js,argument=policy=%policy%&media=%media%&mask=%mask%&netflix_title=%netflix_title%&timeout=%timeout%,timeout=45

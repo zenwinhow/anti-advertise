@@ -1,0 +1,34 @@
+name: "节点 IP 质量检测"
+description: "iOS 小组件展示当前策略经出口节点的 IP、类型、风险与流媒体/AI 可用性。绑定策略后小组件刷新即触发检测。"
+icon: "shield.lefthalf.filled"
+
+env_schema:
+  IPQ_POLICY:
+    name: 策略名
+    description: 用于检测的策略或策略组名（比如 Proxy、节点选择）。脚本通过 ctx.http 的 policy 参数经该策略当前生效的节点发起请求。
+    default_value: "Proxy"
+  IPQ_MEDIA:
+    name: 流媒体检测
+    description: 是否检测 Netflix / Disney+ / YouTube Premium / ChatGPT / Gemini。
+    default_value: "true"
+  IPQ_MASK:
+    name: 遮罩 IP
+    description: 是否在小组件中对 IP 做遮罩。
+    default_value: "false"
+  IPQ_NETFLIX_TITLE:
+    name: Netflix 标题 ID
+    description: 用于 Netflix 检测的标题 ID，默认 81280792（非独占）。
+    default_value: "81280792"
+  IPQ_TIMEOUT_MS:
+    name: 请求超时（毫秒）
+    description: 单次 HTTP 请求超时，默认 8000。
+    default_value: "8000"
+
+scriptings:
+  - generic:
+      name: 节点 IP 质量
+      script_url: https://raw.githubusercontent.com/zenwinhow/anti-advertise/main/modules/ip-quality/scripts/egern-widget.js
+
+widgets:
+  - name: 节点 IP 质量
+    script_name: 节点 IP 质量

@@ -49,6 +49,16 @@
 
 各插件采用的匹配方式、MITM 主机和已知限制不同，安装前请先阅读对应说明。
 
+## 模块列表
+
+`modules/` 收录非去广告类的辅助模块。当前列表：
+
+| 模块 | Loon | Egern | Surge | 详细说明 |
+| --- | --- | --- | --- | --- |
+| 节点 IP 质量检测 | [配置](modules/ip-quality/loon.plugin) | [配置](modules/ip-quality/egern.yaml) | [配置](modules/ip-quality/surge.sgmodule) | [README](modules/ip-quality/README.md) |
+
+模块可能只支持部分客户端，具体请以各模块 README 为准。
+
 ## 安装
 
 1. 在插件列表中打开对应客户端的配置文件。
@@ -82,9 +92,19 @@ plugins/
     ├── egern.yaml
     ├── surge.sgmodule
     └── scripts/
+
+modules/
+└── <module-slug>/
+    ├── README.md
+    ├── loon.plugin
+    ├── egern.yaml
+    ├── surge.sgmodule
+    └── scripts/
 ```
 
 部分插件会包含额外的规则文件，具体用途以插件 README 为准。不支持的客户端可以不提供对应配置。
+
+`plugins/` 存放去广告插件，`modules/` 存放非去广告的其他模块插件（功能增强、签到、解锁、辅助脚本等）。命名规范与目录结构一致，具体约定见 [modules/README.md](modules/README.md)。
 
 ## 贡献
 
