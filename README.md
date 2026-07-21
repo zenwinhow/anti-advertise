@@ -2,6 +2,43 @@
 
 面向 Loon、Egern 和 Surge 的去广告插件集合。每个插件独立维护，只拦截已识别的广告域名、接口、资源路径或响应字段，尽量减少对正常业务的影响。
 
+## 关于本项目
+
+社区里已经有很多成熟、覆盖面广的 iOS 去广告规则/脚本仓库，日常使用建议以下面这些项目为主。本仓库只是作者在使用这些项目的过程中，针对个人常用的 App 做的**补充**——覆盖它们暂未处理或处理得不够彻底的场景，规则粒度更细、范围更保守，不追求大而全。
+
+## 常见的 iOS 去广告项目
+
+以下是社区中较为常见、维护相对活跃的去广告/规则项目，按用途简单分类，可根据自己使用的客户端挑选：
+
+### 综合规则与脚本合集
+
+- [blackmatrix7/ios_rule_script](https://github.com/blackmatrix7/ios_rule_script)：分流规则、重写规则、去广告脚本的大合集，覆盖 Surge、Loon、QuantumultX、Shadowrocket、Clash、Stash 等主流客户端。
+- [limbopro/Adblock4limbo](https://github.com/limbopro/Adblock4limbo)：常见 App 与网页广告拦截规则集，覆盖多种客户端格式。
+- [Repcz/Tool](https://github.com/Repcz/Tool)：Surge、Loon、Clash 等客户端的规则、脚本和模块合集。
+
+### Loon 相关
+
+- [luestr/ProxyResource](https://github.com/luestr/ProxyResource)：Loon 常用插件与脚本资源。
+- [RuCu6/Loon](https://github.com/RuCu6/Loon)：Loon 去广告插件与重写。
+- [Keywos/rule](https://github.com/Keywos/rule)：Loon 分流规则与去广告插件。
+
+### Surge 相关
+
+- [Choler/Surge](https://github.com/Choler/Surge)：Surge 模块合集，含常见 App 去广告。
+- [kokoryh/Sagiri](https://github.com/kokoryh/Sagiri)：Surge 配置与模块。
+
+### QuantumultX 相关
+
+- [app2smile/rules](https://github.com/app2smile/rules)：QuantumultX/Surge/Loon 通用的去广告与重写规则。
+- [Semporia/Quantumult-X](https://github.com/Semporia/Quantumult-X)：QuantumultX 完整配置与规则。
+
+### 通用脚本
+
+- [NobyDa/Script](https://github.com/NobyDa/Script)：常见 App 的 JS 脚本合集（签到、去广告、解锁等），可搭配主流客户端使用。
+- [ddgksf2013/Filter](https://github.com/ddgksf2013/Filter)：去广告过滤规则与脚本。
+
+> 上述列表仅供参考，不代表推荐或对内容负责；订阅任何第三方规则或脚本前，请自行确认来源与内容是否符合预期。
+
 ## 插件列表
 
 | 插件 | Loon | Egern | Surge | 详细说明 |
